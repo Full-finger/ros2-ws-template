@@ -1,0 +1,7 @@
+# __PACKAGE_NAME__ 系统级配置
+# 各节点的参数在此集中管理。被 schemas/params.schema.json 校验。
+
+# 示例：节点参数块（取消注释并替换为真实节点名）
+# some_node_name:
+#   ros__parameters:
+#     some_param: 1.0

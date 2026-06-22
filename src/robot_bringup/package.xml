@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_bringup</name>
+  <version>0.1.0</version>
+  <description>系统集成：launch 文件、系统级配置、依赖编排</description>
+  <maintainer email="dev@robot.lab">robot team</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 运行时依赖：本 bringup 启动这些节点 -->
+  <exec_depend>robot_hardware</exec_depend>
+  <exec_depend>robot_perception</exec_depend>
+  <exec_depend>robot_control</exec_depend>
+  <exec_depend>robot_msgs</exec_depend>
+
+  <!-- launch 脚本运行时依赖 -->
+  <exec_depend>launch_ros</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

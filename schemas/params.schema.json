@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ros2-ws-template/params.schema.json",
+  "title": "ROS2 Parameter File",
+  "description": "校验 config/*.yaml 参数文件。采用 ROS2 标准参数文件格式：<节点全名>: { ros__parameters: { ... } }。顶层允许 /** 作为通配。",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/definitions/node_block"
+  },
+  "properties": {
+    "/**": { "$ref": "#/definitions/node_block" }
+  },
+
+  "definitions": {
+    "node_block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ros__parameters"],
+      "properties": {
+        "ros__parameters": {
+          "type": "object",
+          "description": "参数键值对；键名 snake_case，值类型须与 plugin.yaml 中声明的 parameter type 一致",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "boolean" },
+              { "type": "number" },
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    { "type": "boolean" },
+                    { "type": "number" },
+                    { "type": "string" }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

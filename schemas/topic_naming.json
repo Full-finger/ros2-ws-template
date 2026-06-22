@@ -1,0 +1,18 @@
+{
+  "style": {
+    "case": "snake_case",
+    "separator": "/",
+    "max_depth": 2
+  },
+  "semantic_groups": [
+    { "prefix": "input",  "meaning": "订阅输入" },
+    { "prefix": "output", "meaning": "发布输出" },
+    { "prefix": "status", "meaning": "状态上报" },
+    { "prefix": "cmd",    "meaning": "指令通道" },
+    { "prefix": "debug",  "meaning": "调试输出" }
+  ],
+  "forbidden": {
+    "words": ["temp", "data", "tmp", "foo", "bar", "new", "test", "xxx"],
+    "patterns": ["//", "/$"]
+  }
+}

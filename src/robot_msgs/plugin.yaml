@@ -1,0 +1,17 @@
+# ═══════════════════════════════════════════════════════════
+#  ROS2 接口契约（消息定义包）
+# ═══════════════════════════════════════════════════════════
+
+type: messages
+
+interfaces:
+  msg:
+    - "MotorState.msg"
+    - "RobotStatus.msg"
+    - "Obstacle.msg"
+    - "ObstacleArray.msg"
+  srv:
+    - "EmergencyStop.srv"
+    - "SetMode.srv"
+  action:
+    - "NavigateTo.action"

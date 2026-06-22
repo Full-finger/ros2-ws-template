@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>__PACKAGE_NAME__</name>
+  <version>0.1.0</version>
+  <description>TODO: 系统集成包：launch 文件、配置编排</description>
+  <maintainer email="TODO@todo.todo">TODO</maintainer>
+  <license>TODO: 例如 MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- TODO: 把这里替换为本 bringup 实际启动的子包 -->
+  <exec_depend>TODO_replace_me</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

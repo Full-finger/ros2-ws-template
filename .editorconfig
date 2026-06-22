@@ -1,0 +1,28 @@
+# 编译格式统一
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{c,cc,cpp,cu,cuh,h,hh,hpp,hxx,inl}]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.{yaml,yml}]
+indent_size = 2
+
+[*.{py,launch.py}]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{msg,srv,action}]
+indent_size = 2

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>__PACKAGE_NAME__</name>
+  <version>0.1.0</version>
+  <description>TODO: 公共工具库（纯 C++，零 ROS2 依赖）</description>
+  <maintainer email="TODO@todo.todo">TODO</maintainer>
+  <license>TODO: 例如 MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 注意: 纯 C++ 库不要在这里 depend 任何 rclcpp/msg 包 -->
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

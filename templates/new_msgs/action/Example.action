@@ -1,0 +1,10 @@
+# 示例动作
+# Goal
+float64 target
+---
+# Result
+float64 final_value
+bool success
+---
+# Feedback
+float64 progress

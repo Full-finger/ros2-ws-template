@@ -1,0 +1,27 @@
+# 参见 .clang-format；ColumnLimit=100，4 空格缩进，Google 基础
+BasedOnStyle: Google
+ColumnLimit: 100
+IndentWidth: 4
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBraces: Attach
+DerivePointerAlignment: false
+PointerAlignment: Left
+IncludeBlocks: Regroup
+SortIncludes: CaseSensitive
+IncludeCategories:
+  # STL
+  - Regex: '^<[^/]+>$'
+    Priority: 1
+  # 第三方（Eigen/OpenCV 等）
+  - Regex: '^<(Eigen|opencv|gtest)/'
+    Priority: 2
+  # ROS2
+  - Regex: '^<(rclcpp|rcl_interfaces|rcl|ros|tf|nav_msgs|sensor_msgs|geometry_msgs|std_msgs|std_srvs|builtin_interfaces|action)'
+    Priority: 3
+  # 本项目（robot_* 或分层短路径 model/service/controller）
+  - Regex: '^"(robot_|model/|service/|controller/)'
+    Priority: 4

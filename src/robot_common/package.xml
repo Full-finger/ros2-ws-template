@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_common</name>
+  <version>0.1.0</version>
+  <description>公共工具库：PID、数学工具（纯 C++，零 ROS2 依赖）</description>
+  <maintainer email="dev@robot.lab">robot team</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 注意：纯 C++ 库不得 depend 任何 rclcpp/*_msgs 包 -->
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

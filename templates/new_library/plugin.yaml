@@ -1,0 +1,12 @@
+# ═══════════════════════════════════════════════════════════
+#  ROS2 接口契约（纯库类型）
+# ═══════════════════════════════════════════════════════════
+
+type: library
+
+exposes:
+  headers:
+    - "include/__PACKAGE_NAME__"
+  no_ros2_dependency: true   # 纯 C++/STL，不依赖 rclcpp 或任何 ROS2 消息
+
+depends_on: []

@@ -1,0 +1,7 @@
+# robot_perception 参数（ROS2 标准格式）
+robot_perception:
+  ros__parameters:
+    max_range: 5.0
+    min_range: 0.05
+    cell_size: 0.2
+    min_points: 1

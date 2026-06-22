@@ -1,0 +1,53 @@
+# ═══════════════════════════════════════════════════════════
+#  ROS2 接口契约：硬件驱动节点
+# ═══════════════════════════════════════════════════════════
+
+type: node
+
+runtime:
+  node: "robot_hardware::controller::MainNode"
+  lifecycle: false
+
+  outputs:
+    - topic: "~/output/odom"
+      type: "nav_msgs/Odometry"
+      description: "轮式里程计（差速驱动积分）"
+      qos: reliable
+    - topic: "~/output/imu"
+      type: "sensor_msgs/Imu"
+      description: "IMU 原始读数"
+      qos: sensor
+
+  services_provided:
+    - name: "~/emergency_stop"
+      type: "robot_msgs/EmergencyStop"
+      description: "紧急停止并重置里程计"
+
+  parameters:
+    - name: serial_port
+      type: string
+      default: "/dev/ttyUSB0"
+      description: "串口设备路径"
+    - name: baud_rate
+      type: int
+      default: 115200
+      description: "串口波特率"
+    - name: wheel_radius
+      type: double
+      default: 0.05
+      unit: "m"
+      description: "驱动轮半径"
+    - name: wheel_base
+      type: double
+      default: 0.3
+      unit: "m"
+      description: "左右驱动轮间距"
+    - name: update_rate
+      type: double
+      default: 50.0
+      unit: "Hz"
+      description: "主循环采样频率"
+
+depends_on:
+  - robot_common
+  - robot_msgs

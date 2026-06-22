@@ -1,0 +1,149 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  ROS_DISTRO: humble
+
+jobs:
+
+  # ═══ Stage 1: 快速校验（<1 分钟，不依赖 ROS2） ═══
+  validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python deps
+        run: pip install pyyaml jsonschema
+
+      - name: Validate plugin.yaml & config (jsonschema)
+        run: python3 scripts/validate_schema.py
+
+      - name: Validate cross consistency
+        run: python3 scripts/validate_cross.py
+
+      - name: Validate dependency graph
+        run: python3 scripts/validate_deps.py
+
+      - name: Validate topic naming
+        run: python3 scripts/validate_topic_names.py
+
+      - name: Validate layer boundaries
+        run: python3 scripts/validate_layers.py
+
+      - name: Cross-check with ajv (tool parity)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install -g ajv-cli ajv-formats
+      - name: ajv validate each plugin.yaml
+        run: |
+          for f in $(find src -name plugin.yaml); do
+            echo "ajv: $f"
+            ajv validate -s schemas/plugin.schema.json -d "$f" \
+              --strict=false -c ajv-formats
+          done
+
+      - name: package.xml well-formedness (stdlib)
+        run: |
+          python3 -c "
+          import glob, sys
+          from xml.etree import ElementTree as ET
+          errs = 0
+          for f in sorted(glob.glob('src/**/package.xml', recursive=True)):
+              try:
+                  ET.parse(f); print(f'OK  {f}')
+              except Exception as e:
+                  print(f'ERR {f}: {e}'); errs += 1
+          sys.exit(1 if errs else 0)
+          "
+
+  # ═══ Stage 2: 编译 + 测试（需 ROS2） ═══
+  build-and-test:
+    needs: validate
+    runs-on: ubuntu-22.04
+    container:
+      image: ros:humble-ros-base
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          rosdep update
+          rosdep install --from-paths src --ignore-src -r -y
+          apt-get install -y python3-colcon-common-extensions
+
+      - name: Build
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          colcon build --symlink-install \
+            --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+      - name: Test
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          source install/setup.bash
+          colcon test --return-code-on-test-failure
+
+      - name: Test result
+        if: always()
+        run: |
+          source /opt/ros/${ROS_DISTRO}/setup.bash
+          colcon test-result --verbose
+
+  # ═══ Stage 3: 代码风格（和 Stage 2 并行） ═══
+  lint:
+    needs: validate
+    runs-on: ubuntu-22.04
+    container:
+      image: ros:humble-ros-base
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install linters
+        run: |
+          apt-get update
+          pip3 install yamllint
+
+      - name: YAML lint
+        run: yamllint -d relaxed src/ || true
+
+      - name: C++ format check (clang-format)
+        run: |
+          apt-get install -y clang-format
+          find src -type f \( -name '*.hpp' -o -name '*.cpp' \) -print0 \
+            | xargs -0 clang-format --dry-run -Werror --style=file
+
+  # ═══ Stage 4: 依赖图（仅 main） ═══
+  dep-graph:
+    needs: validate
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install pyyaml
+
+      - name: Generate graph
+        run: |
+          sudo apt-get install -y graphviz
+          python3 scripts/generate_dep_graph.py > docs/dependency_graph.dot
+          dot -Tpng docs/dependency_graph.dot -o docs/dependency_graph.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: docs/dependency_graph.png

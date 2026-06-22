@@ -1,0 +1,10 @@
+# robot_hardware 参数（ROS2 标准格式）
+# 被 schemas/params.schema.json 校验。
+
+robot_hardware:
+  ros__parameters:
+    serial_port: "/dev/ttyUSB0"
+    baud_rate: 115200
+    wheel_radius: 0.05
+    wheel_base: 0.3
+    update_rate: 50.0

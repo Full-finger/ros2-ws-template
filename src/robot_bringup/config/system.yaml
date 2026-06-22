@@ -1,0 +1,18 @@
+# 系统级配置：集中覆盖各节点的关键运行参数。
+# 被 schemas/params.schema.json 校验。
+# 各节点自身的默认参数见各自包的 config/params.yaml，本文件做全局调优。
+
+robot_hardware:
+  ros__parameters:
+    serial_port: "/dev/ttyUSB0"
+    update_rate: 50.0
+
+robot_perception:
+  ros__parameters:
+    cell_size: 0.25
+    min_points: 2
+
+robot_control:
+  ros__parameters:
+    target_linear_speed: 0.4
+    safe_distance: 0.7

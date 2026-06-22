@@ -1,0 +1,5 @@
+# 示例服务请求/响应
+float64 request_value
+---
+float64 response_value
+bool success

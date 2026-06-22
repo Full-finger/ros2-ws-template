@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ros2-ws-template/topic_naming.schema.json",
+  "title": "ROS2 Topic Naming Convention (Rule Set)",
+  "description": "本项目 topic 命名规范规则集。这不是对某个独立文件的 JSON Schema，而是一份机器可读的规则文档：scripts/validate_topic_names.py 会读取本文件，遍历所有 plugin.yaml 的 inputs/outputs，按规则逐条校验。人也可以直接读这份文件了解命名约定。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["style", "semantic_groups", "forbidden"],
+
+  "properties": {
+    "style": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "基础命名风格",
+      "required": ["case", "separator", "max_depth"],
+      "properties": {
+        "case": {
+          "type": "string",
+          "enum": ["snake_case", "lower_camel"],
+          "description": "命名风格；本项目统一 snake_case"
+        },
+        "separator": {
+          "type": "string",
+          "const": "/",
+          "description": "层级分隔符固定为 /"
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 2,
+          "description": "私有 topic (~ 开头) 的最大层级深度，避免 ~/a 这种过浅命名"
+        }
+      }
+    },
+
+    "semantic_groups": {
+      "type": "array",
+      "description": "允许的语义前缀分组。私有 topic (~ 后第一段) 必须落在这些前缀之一，保证全仓库 topic 语义一致。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["prefix", "meaning"],
+        "properties": {
+          "prefix": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "meaning": { "type": "string" }
+        }
+      }
+    },
+
+    "forbidden": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "禁用项",
+      "required": ["words", "patterns"],
+      "properties": {
+        "words": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "任何 topic 段落中不得出现的词"
+        },
+        "patterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "正则表达式列表；topic 命中任一则违规"
+        }
+      }
+    }
+  }
+}

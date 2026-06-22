@@ -1,0 +1,8 @@
+# 导航到目标点
+geometry_msgs/Point target
+float64 timeout             # 超时秒数
+---
+bool success
+string message
+---
+float64 distance_remaining

@@ -1,0 +1,9 @@
+# __PACKAGE_NAME__ 参数文件（ROS2 标准格式）
+# 被 schemas/params.schema.json 校验。
+# 值类型必须与 plugin.yaml 中声明的 parameter type 一致。
+
+__PACKAGE_NAME__:
+  ros__parameters:
+    update_rate: 10.0
+    threshold: 0.5
+    debug: false

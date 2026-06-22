@@ -1,0 +1,5 @@
+# 设置工作模式
+uint8 mode
+---
+bool success
+string message

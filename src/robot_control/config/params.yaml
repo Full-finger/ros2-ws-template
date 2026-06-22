@@ -1,0 +1,10 @@
+# robot_control 参数（ROS2 标准格式）
+robot_control:
+  ros__parameters:
+    target_linear_speed: 0.5
+    max_linear_speed: 1.0
+    max_angular_speed: 1.5
+    safe_distance: 0.8
+    kp: 2.0
+    ki: 0.5
+    kd: 0.1

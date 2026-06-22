@@ -1,0 +1,21 @@
+digraph G {
+  rankdir=LR;
+  node [shape=box, style="rounded,filled", fontname="Helvetica"];
+
+  "robot_bringup" [fillcolor="#f8bbd0", label="robot_bringup\n(bringup)"];
+  "robot_common" [fillcolor="#bbdefb", label="robot_common\n(library)"];
+  "robot_control" [fillcolor="#fff9c4", label="robot_control\n(node)"];
+  "robot_hardware" [fillcolor="#fff9c4", label="robot_hardware\n(node)"];
+  "robot_msgs" [fillcolor="#c8e6c9", label="robot_msgs\n(messages)"];
+  "robot_perception" [fillcolor="#fff9c4", label="robot_perception\n(node)"];
+
+  "robot_hardware" -> "robot_bringup";
+  "robot_perception" -> "robot_bringup";
+  "robot_control" -> "robot_bringup";
+  "robot_common" -> "robot_control";
+  "robot_msgs" -> "robot_control";
+  "robot_common" -> "robot_hardware";
+  "robot_msgs" -> "robot_hardware";
+  "robot_common" -> "robot_perception";
+  "robot_msgs" -> "robot_perception";
+}
