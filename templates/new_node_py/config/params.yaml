@@ -1,0 +1,5 @@
+# __PACKAGE_NAME__ 参数（ROS2 标准格式）
+__PACKAGE_NAME__:
+  ros__parameters:
+    threshold: 0.5
+    update_rate: 10.0

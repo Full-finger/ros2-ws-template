@@ -13,7 +13,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/msg/odometry.hpp>
-#include <sensor_msgs/msg/imu.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 
 #include <robot_msgs/srv/emergency_stop.hpp>
@@ -39,7 +38,6 @@ public:
 
         // ── 发布者 ──
         odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("~/output/odom", 10);
-        imu_pub_ = create_publisher<sensor_msgs::msg::Imu>("~/output/imu", 10);
 
         // ── 服务 ──
         estop_srv_ = create_service<robot_msgs::srv::EmergencyStop>(
@@ -72,8 +70,8 @@ private:
 
         // TODO: 这里接真实串口读取电机速度。当前用模拟静止读数。
         model::MotorReading reading{};
-        reading.left_velocity = 0.0;
-        reading.right_velocity = 0.0;
+        reading.left_wheel_speed = 0.0;
+        reading.right_wheel_speed = 0.0;
         reading.timestamp = now_s;
 
         model::OdometryData odom = drive_service_->update_odometry(
@@ -112,7 +110,6 @@ private:
 
     std::unique_ptr<service::DifferentialDriveService> drive_service_;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
     rclcpp::Service<robot_msgs::srv::EmergencyStop>::SharedPtr estop_srv_;
     rclcpp::TimerBase::SharedPtr timer_;
     bool stopped_ = false;

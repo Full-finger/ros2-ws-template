@@ -1,0 +1,44 @@
+# ═══════════════════════════════════════════════════════════
+#  ROS2 接口契约：感知节点（Python 实现，订阅 LaserScan，发布障碍物）
+# ═══════════════════════════════════════════════════════════
+
+type: node
+
+# 语言标记：与 C++ 实现区分。校验脚本据此选择 Python/C++ 规则集。
+language: python
+
+runtime:
+  # Python 节点入口：<module>:<class>
+  node: "robot_perception_py.controller.main_node:MainNode"
+  lifecycle: false
+
+  inputs:
+    - topic: "~/input/scan"
+      type: "sensor_msgs/LaserScan"
+      description: "激光雷达扫描数据"
+      qos: sensor
+
+  outputs:
+    - topic: "~/output/obstacles"
+      type: "robot_msgs/ObstacleArray"
+      description: "提取的障碍物列表"
+      qos: reliable
+
+  parameters:
+    - name: max_range
+      type: double
+      default: 5.0
+      unit: "m"
+      description: "有效激光点最大距离"
+    - name: min_range
+      type: double
+      default: 0.05
+      unit: "m"
+      description: "小于此距离的点视为噪点丢弃"
+    - name: min_points
+      type: int
+      default: 1
+      description: "至少多少个有效点才算障碍物"
+
+depends_on:
+  - robot_msgs

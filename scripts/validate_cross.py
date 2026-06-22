@@ -58,7 +58,10 @@ def check_node_namespace(plugin: dict, pkg_name: str, pkg_dir: Path) -> list:
     node_class = plugin.get("runtime", {}).get("node", "")
     if not node_class:
         return []
-    top_ns = node_class.split("::")[0]
+    # C++: "foo::controller::MainNode"  →  顶层 = foo
+    # Python: "foo.controller.main_node:MainNode"  →  顶层 = foo
+    entry = node_class.split(":")[0]  # 去掉 py 的 :Class
+    top_ns = entry.replace("::", ".").split(".")[0]
     if top_ns != pkg_name:
         return [f"  ✗ {pkg_dir.name}: runtime.node 顶层 namespace "
                 f"'{top_ns}' != package.xml name '{pkg_name}'"]
@@ -85,6 +88,23 @@ def check_depends_on(plugin: dict, pkg_xml: dict, pkg_dir: Path) -> list:
     return []
 
 
+def check_depends_on_reverse(plugin: dict, pkg_xml: dict, pkg_dir: Path,
+                             all_pkg_names: set) -> list:
+    """反向检查：package.xml 声明的【本项目内部】包依赖，
+    应出现在 plugin.yaml 的 depends_on（仅 node/library 类型）。
+    bringup 的 subpackages 可能只列直接启动的包，传递依赖允许不声明。"""
+    internal = {d for d in pkg_xml["deps"]
+                if d in all_pkg_names and d != pkg_xml["name"]}
+    if not internal:
+        return []
+    declared = set(plugin.get("depends_on", []) or [])
+    missing = internal - declared
+    if missing:
+        return [f"  ✗ {pkg_dir.name}: package.xml 依赖本项目包 {sorted(missing)} "
+                f"但 plugin.yaml depends_on 未声明"]
+    return []
+
+
 def check_bringup_subpackages(plugin: dict, pkg_dir: Path) -> list:
     errs = []
     for sub in plugin.get("subpackages", []) or []:
@@ -102,6 +122,9 @@ def main() -> int:
     count = 0
 
     print("== plugin.yaml ↔ package.xml 交叉校验 ==")
+    # 先收集所有包名，供反向依赖检查
+    all_pkg_names = {p.name for p in SRC.iterdir()
+                     if p.is_dir() and (p / "plugin.yaml").exists()}
     for pkg_dir in sorted(p for p in SRC.iterdir() if p.is_dir()):
         plugin = parse_plugin_yaml(pkg_dir)
         if plugin is None:
@@ -127,6 +150,9 @@ def main() -> int:
             all_errors.extend(check_bringup_subpackages(plugin, pkg_dir))
 
         all_errors.extend(check_depends_on(plugin, pkg_xml, pkg_dir))
+        if pkg_type in ("node", "library"):
+            all_errors.extend(check_depends_on_reverse(
+                plugin, pkg_xml, pkg_dir, all_pkg_names))
 
         print(f"  {pkg_dir.name:25s} type={pkg_type:10s} ✓")
 

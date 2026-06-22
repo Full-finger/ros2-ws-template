@@ -80,6 +80,6 @@ plugin.yaml   runtime.node: "robot_control::controller::MainNode"
 
 ## CMake
 
-- 业务包的 service 若 header-only，主 target 只编译 `src/controller/main_node.cpp`。
+- 业务包的 service 若 header-only，主 target 只编译 `src/main_node.cpp`。
 - 用 `ament_target_dependencies(target dep1 dep2)` 引入 ROS2 依赖，别手写 `target_link_libraries(... rclcpp::rclcpp)`。
 - `install` 三件套：可执行文件 → `lib/<pkg>`，头文件 → `include`，launch/config → `share/<pkg>`。

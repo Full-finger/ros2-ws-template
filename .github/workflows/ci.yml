@@ -40,6 +40,9 @@ jobs:
       - name: Validate layer boundaries
         run: python3 scripts/validate_layers.py
 
+      - name: Architecture & quality report
+        run: python3 scripts/arch_check.py
+
       - name: Cross-check with ajv (tool parity)
         uses: actions/setup-node@v4
         with:
@@ -67,6 +70,12 @@ jobs:
           sys.exit(1 if errs else 0)
           "
 
+      - name: Upload arch report
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-report
+          path: docs/arch-report.md
+
   # ═══ Stage 2: 编译 + 测试（需 ROS2） ═══
   build-and-test:
     needs: validate
@@ -81,7 +90,7 @@ jobs:
           apt-get update
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y
-          apt-get install -y python3-colcon-common-extensions
+          apt-get install -y python3-colcon-common-extensions python3-pytest
 
       - name: Build
         run: |
@@ -116,7 +125,7 @@ jobs:
           pip3 install yamllint
 
       - name: YAML lint
-        run: yamllint -d relaxed src/ || true
+        run: yamllint -d relaxed src/
 
       - name: C++ format check (clang-format)
         run: |

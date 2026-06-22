@@ -9,7 +9,6 @@ robot_hardware:
 
 robot_perception:
   ros__parameters:
-    cell_size: 0.25
     min_points: 2
 
 robot_control:

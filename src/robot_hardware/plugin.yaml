@@ -13,10 +13,6 @@ runtime:
       type: "nav_msgs/Odometry"
       description: "轮式里程计（差速驱动积分）"
       qos: reliable
-    - topic: "~/output/imu"
-      type: "sensor_msgs/Imu"
-      description: "IMU 原始读数"
-      qos: sensor
 
   services_provided:
     - name: "~/emergency_stop"

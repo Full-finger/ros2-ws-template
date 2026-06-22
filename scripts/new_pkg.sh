@@ -30,17 +30,18 @@ NAME="${2:-}"
 # ── type → 模板目录 映射 ──
 case "$TYPE" in
     node)     TMPL="new_node" ;;
+    node-py)  TMPL="new_node_py" ;;
     library)  TMPL="new_library" ;;
     msgs)     TMPL="new_msgs" ;;
     bringup)  TMPL="new_bringup" ;;
     "")
         echo "${RED}错误: 缺少 type 参数${RESET}"
-        echo "用法: $0 <node|library|msgs|bringup> <name>"
+        echo "用法: $0 <node|node-py|library|msgs|bringup> <name>"
         exit 1
         ;;
     *)
         echo "${RED}错误: 未知 type '$TYPE'${RESET}"
-        echo "合法值: node | library | msgs | bringup"
+        echo "合法值: node | node-py | library | msgs | bringup"
         exit 1
         ;;
 esac
@@ -48,7 +49,7 @@ esac
 # ── 校验包名 ──
 if [ -z "$NAME" ]; then
     echo "${RED}错误: 缺少 name 参数${RESET}"
-    echo "用法: $0 <node|library|msgs|bringup> <name>"
+    echo "用法: $0 <node|node-py|library|msgs|bringup> <name>"
     exit 1
 fi
 if ! echo "$NAME" | grep -qE '^[a-z][a-z0-9_]*$'; then
@@ -81,13 +82,25 @@ echo "${YELLOW}    替换占位符 __PACKAGE_NAME__ → $NAME${RESET}"
 find "$DEST" -type f \
     \( -name "*.hpp" -o -name "*.cpp" -o -name "*.yaml" \
        -o -name "*.xml" -o -name "*.py" -o -name "CMakeLists.txt" \
-       -o -name "*.msg" -o -name "*.srv" -o -name "*.action" \) \
+       -o -name "*.msg" -o -name "*.srv" -o -name "*.action" \
+       -o -name "setup.cfg" \) \
     -exec sed -i "s/__PACKAGE_NAME__/$NAME/g" {} +
 
-# ── 2) 重命名目录 include/__PACKAGE_NAME__ → include/<NAME> ──
+# ── 2) 重命名目录占位符 ──
+# C++: include/__PACKAGE_NAME__ → include/<NAME>
 if [ -d "$DEST/include/__PACKAGE_NAME__" ]; then
     echo "${YELLOW}    重命名 include/__PACKAGE_NAME__ → include/$NAME${RESET}"
     mv "$DEST/include/__PACKAGE_NAME__" "$DEST/include/$NAME"
+fi
+# Python: <pkg>/__PACKAGE_NAME__/ → <pkg>/<NAME>/ （Python 模块目录）
+if [ -d "$DEST/__PACKAGE_NAME__" ]; then
+    echo "${YELLOW}    重命名 __PACKAGE_NAME__/ → $NAME/${RESET}"
+    mv "$DEST/__PACKAGE_NAME__" "$DEST/$NAME"
+fi
+# Python: resource/__PACKAGE_NAME__ → resource/<NAME>（ament_python 必需的 marker）
+if [ -f "$DEST/resource/__PACKAGE_NAME__" ]; then
+    echo "${YELLOW}    重命名 resource/__PACKAGE_NAME__ → resource/$NAME${RESET}"
+    mv "$DEST/resource/__PACKAGE_NAME__" "$DEST/resource/$NAME"
 fi
 
 # ── 3) 重命名 __PACKAGE_NAME__.* 文件 → <NAME>.* ──

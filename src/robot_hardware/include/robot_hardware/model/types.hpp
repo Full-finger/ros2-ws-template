@@ -7,9 +7,9 @@ namespace robot_hardware::model {
 
 /// 电机原始读数（来自串口/驱动器）
 struct MotorReading {
-    double left_velocity = 0.0;   // 左轮线速度 m/s
-    double right_velocity = 0.0;  // 右轮线速度 m/s
-    double timestamp = 0.0;       // 秒
+    double left_wheel_speed = 0.0;   // 左轮角速度 rad/s
+    double right_wheel_speed = 0.0;  // 右轮角速度 rad/s
+    double timestamp = 0.0;          // 秒
 };
 
 /// 轮式里程计结果（机器人坐标系积分）
@@ -19,13 +19,6 @@ struct OdometryData {
     double theta = 0.0;            // 朝向 [-pi, pi]
     double linear_velocity = 0.0;  // m/s
     double angular_velocity = 0.0; // rad/s
-    double timestamp = 0.0;
-};
-
-/// IMU 读数
-struct ImuData {
-    double ax = 0.0, ay = 0.0, az = 0.0;  // 加速度 m/s^2
-    double gx = 0.0, gy = 0.0, gz = 0.0;  // 角速度 rad/s
     double timestamp = 0.0;
 };
 

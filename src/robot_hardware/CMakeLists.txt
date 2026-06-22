@@ -8,13 +8,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(robot_common REQUIRED)
 find_package(robot_msgs REQUIRED)
 
 # ── 节点可执行文件 ──
-add_executable(main_node src/controller/main_node.cpp)
+add_executable(main_node src/main_node.cpp)
 target_include_directories(main_node PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -23,7 +22,6 @@ target_compile_features(main_node PRIVATE cxx_std_17)
 ament_target_dependencies(main_node
   rclcpp
   nav_msgs
-  sensor_msgs
   geometry_msgs
   robot_common
   robot_msgs

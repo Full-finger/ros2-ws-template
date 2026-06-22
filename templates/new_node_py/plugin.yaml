@@ -1,0 +1,35 @@
+# ═══════════════════════════════════════════════════════════
+#  ROS2 接口契约（Python 节点）
+# ═══════════════════════════════════════════════════════════
+
+type: node
+
+language: python   # ← Python 实现，校验脚本据此选择规则集
+
+runtime:
+  # Python 节点入口：<module>:<class>
+  node: "__PACKAGE_NAME__.controller.main_node:MainNode"
+  lifecycle: false
+
+  inputs:
+    - topic: "~/input/example"
+      type: "std_msgs/msg/Float64"
+      description: "示例输入"
+      qos: reliable
+
+  outputs:
+    - topic: "~/output/result"
+      type: "std_msgs/msg/Float64"
+      description: "示例输出"
+      qos: reliable
+
+  parameters:
+    - name: threshold
+      type: double
+      default: 0.5
+      description: "处理阈值，输出 = 输入 × 阈值"
+    - name: update_rate
+      type: double
+      default: 10.0
+      unit: "Hz"
+      description: "主循环频率"

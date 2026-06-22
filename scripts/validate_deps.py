@@ -96,6 +96,16 @@ def check_existence(pkgs: dict) -> list:
     return errs
 
 
+def check_placeholders(pkgs: dict) -> list:
+    """检测 depends_on/subpackages 里未替换的脚手架占位符。"""
+    errs = []
+    for name, info in pkgs.items():
+        for dep in info["depends_on"]:
+            if "TODO" in dep or "replace_me" in dep:
+                errs.append(f"  ✗ {name}: 依赖 '{dep}' 含未替换的占位符")
+    return errs
+
+
 def topo_sort(pkgs: dict) -> list | None:
     """返回拓扑序；存在环则返回 None。"""
     in_deg = {n: 0 for n in pkgs}
@@ -131,6 +141,7 @@ def main() -> int:
 
     errors = []
     errors += check_existence(pkgs)
+    errors += check_placeholders(pkgs)
     errors += check_layering(pkgs)
 
     cycles = detect_cycles(pkgs)

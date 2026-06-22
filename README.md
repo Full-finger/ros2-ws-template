@@ -1,8 +1,8 @@
 # ros2-ws-template
 
-一个**强约定、可校验**的 ROS2 工作空间模板。把每个功能包强制拆成 `model / service / controller` 三层，用 JSON Schema 卡住接口契约，让核心算法可脱离 ROS2 裸跑 gtest。
+一个**强约定、可校验**的 ROS2 工作空间模板。把每个功能包强制拆成 `model / service / controller` 三层，用 JSON Schema 卡住接口契约，让核心算法可脱离 ROS2 裸跑 gtest / pytest。
 
-> 这是模板。`src/` 下的 6 个包（`robot_msgs` / `robot_common` / `robot_hardware` / `robot_perception` / `robot_control` / `robot_bringup`）是示范工程，替换成你自己的机器人代码即可。
+> 这是模板。`src/` 下的 6 个包（`robot_msgs` / `robot_common` / `robot_hardware` / `robot_perception_py` / `robot_control` / `robot_bringup`）是示范工程，替换成你自己的机器人代码即可。**C++ 与 Python 混合**：实时层（hardware/control）用 C++，AI/快速迭代层（perception）用 Python。
 
 ## 为什么用这个模板
 
@@ -49,15 +49,31 @@ ros2 launch robot_bringup full_system.launch.py
 ## 创建新包
 
 ```bash
-make new-node    NAME=robot_foo      # 业务节点（有 ROS2 节点）
+make new-node    NAME=robot_foo      # 业务节点（C++，实时层默认选这个）
+make new-node-py NAME=robot_foo_py   # 业务节点（Python，AI/快速迭代用）
 make new-lib     NAME=robot_foo      # 纯 C++ 库
 make new-msgs    NAME=robot_foo      # 自定义消息
 make new-bringup NAME=robot_foo      # 集成 launch 包
 ```
 
-约定 **包名 == C++ 命名空间 == include 目录**，三者必须一致（脚手架已保证）。
+约定 **包名 == 命名空间 == 入口目录**，三者必须一致（脚手架已保证）。
+
+### C++ 还是 Python？
+
+| 场景 | 选 | 理由 |
+|------|----|------|
+| 控制循环、运动学、实时高频 | **C++** | 性能、类型安全、编译期保证 |
+| AI/ML 推理、行为决策、快速原型 | **Python** | 生态、迭代速度、review 友好 |
+| 纯工具库（PID、数学） | **C++** | 零 ROS2 依赖，可裸测 |
+
+两层架构同样适用：Python 包的 model/service 仍禁止 `import rclpy`，pytest 裸测；`validate_layers` 对两种语言都校验。
 
 ## 校验
+
+两套互补的检查：
+
+- **接口契约**（`make validate-all`，提交前必跑）：schema、一致性、依赖链、命名、include 边界
+- **架构与质量报告**（`make arch-check`）：三层完整性、service 测试覆盖度、文件规模、TODO 汇总，生成 `docs/arch-report.md`
 
 ```bash
 make validate-all       # 全部（提交前必跑）
@@ -65,6 +81,7 @@ make validate-schema    # JSON Schema：plugin.yaml / config yaml
 make validate-cross     # plugin.yaml ↔ package.xml 一致性
 make validate-deps      # 依赖链完整性 + 分层合法性 + 拓扑序
 make validate-topics    # topic 命名规范
+make arch-check         # 架构与质量报告 → docs/arch-report.md
 make graph              # 重新生成依赖图
 ```
 
@@ -91,13 +108,13 @@ make graph              # 重新生成依赖图
 ```
 robot_hardware ──odom──┐
                        ├──→ robot_control ──cmd_vel──▶
-robot_perception ──obstacles──┘
+robot_perception_py ──obstacles──┘
 ```
 
-- `robot_hardware`：差速驱动运动学积分，发布 odom，提供紧急停止
-- `robot_perception`：激光点网格聚类，输出障碍物列表
-- `robot_control`：基于 `robot_common::PID` 的避障速度调节
-- `robot_common`：纯 C++ 工具（PID、数学），零 ROS2 依赖
+- `robot_hardware`（C++）：差速驱动运动学积分，发布 odom，提供紧急停止
+- `robot_perception_py`（Python）：激光点求质心，输出障碍物列表
+- `robot_control`（C++）：基于距离阈值的避障速度调节
+- `robot_common`（C++）：纯 C++ 工具库（PID、数学工具），零 ROS2 依赖
 
 ## 约束速查
 

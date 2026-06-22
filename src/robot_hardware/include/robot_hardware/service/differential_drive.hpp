@@ -1,7 +1,9 @@
 // ═══════════════════════════════════════════════════════════
 //  Service 层：差速驱动运动学（纯逻辑，零 ROS2 依赖）
 //
-//  给定左右轮线速度，按差速驱动模型积分得到里程计：
+//  给定左右轮角速度（rad/s），按差速驱动模型积分得到里程计：
+//    v_left  = left_wheel_speed  * wheel_radius
+//    v_right = right_wheel_speed * wheel_radius
 //    v   = (v_left + v_right) / 2
 //    w   = (v_right - v_left) / wheel_base
 //    x  += v * cos(theta) * dt
@@ -34,9 +36,11 @@ public:
             throw model::SensorReadError("dt 必须为正");
         }
 
-        const double v = (reading.left_velocity + reading.right_velocity) / 2.0;
+        const double v_left = reading.left_wheel_speed * config_.wheel_radius;
+        const double v_right = reading.right_wheel_speed * config_.wheel_radius;
+        const double v = (v_left + v_right) / 2.0;
         const double w =
-            (reading.right_velocity - reading.left_velocity) / config_.wheel_base;
+            (v_right - v_left) / config_.wheel_base;
 
         odom_.theta = robot_common::math::wrap_angle(odom_.theta + w * dt);
         odom_.x += v * std::cos(odom_.theta) * dt;
@@ -59,8 +63,8 @@ public:
 
 private:
     static void validate(const model::MotorReading &reading) {
-        if (std::isnan(reading.left_velocity) || std::isnan(reading.right_velocity)) {
-            throw model::SensorReadError("电机读数含 NaN");
+        if (!std::isfinite(reading.left_wheel_speed) || !std::isfinite(reading.right_wheel_speed)) {
+            throw model::SensorReadError("电机读数含 NaN 或 Inf");
         }
     }
 

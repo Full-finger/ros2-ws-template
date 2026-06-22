@@ -16,7 +16,7 @@ find_package(std_msgs REQUIRED)
 # service 层为 header-only（小型 service 约定），无需单独建库。
 # 当 service 变大需要拆 .cpp 时，参考 docs/conventions.md 新建
 #   add_library(${PROJECT_NAME}_service src/service/xxx.cpp)
-add_executable(main_node src/controller/main_node.cpp)
+add_executable(main_node src/main_node.cpp)
 target_include_directories(main_node PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>

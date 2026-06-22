@@ -13,10 +13,6 @@ runtime:
       type: "robot_msgs/ObstacleArray"
       description: "障碍物列表（驱动避障计算）"
       qos: reliable
-    - topic: "~/input/odom"
-      type: "nav_msgs/Odometry"
-      description: "里程计（记录当前状态）"
-      qos: reliable
 
   outputs:
     - topic: "~/output/cmd_vel"
@@ -30,34 +26,16 @@ runtime:
       default: 0.5
       unit: "m/s"
       description: "无威胁时的期望前进速度"
-    - name: max_linear_speed
-      type: double
-      default: 1.0
-      unit: "m/s"
-      description: "最大线速度限幅"
     - name: max_angular_speed
       type: double
       default: 1.5
       unit: "rad/s"
-      description: "最大角速度限幅"
+      description: "避障转向角速度"
     - name: safe_distance
       type: double
       default: 0.8
       unit: "m"
       description: "开始触发避障的距离阈值"
-    - name: kp
-      type: double
-      default: 2.0
-      description: "制动 PID 比例增益"
-    - name: ki
-      type: double
-      default: 0.5
-      description: "制动 PID 积分增益"
-    - name: kd
-      type: double
-      default: 0.1
-      description: "制动 PID 微分增益"
 
 depends_on:
-  - robot_common
   - robot_msgs

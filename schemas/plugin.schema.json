@@ -18,6 +18,12 @@
       "items": { "type": "string" },
       "description": "运行时依赖的其他本项目包（用于依赖图生成）"
     },
+    "language": {
+      "type": "string",
+      "enum": ["cpp", "python"],
+      "default": "cpp",
+      "description": "实现语言，默认 cpp。Python 包用 ament_python，校验脚本据此选择规则集"
+    },
     "exposes": {
       "type": "object",
       "description": "库类型包的导出信息（type=library 时必填）"

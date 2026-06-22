@@ -7,5 +7,5 @@ type: bringup
 
 subpackages:
   - "robot_hardware"
-  - "robot_perception"
+  - "robot_perception_py"
   - "robot_control"

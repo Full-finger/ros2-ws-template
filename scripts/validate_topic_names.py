@@ -41,7 +41,7 @@ def load_rules() -> dict:
 
 def segments(topic: str) -> list:
     """去掉 ~ 前缀，按 / 拆分段。"""
-    t = topic.lstrip("~")
+    t = topic.removeprefix("~")
     return [s for s in t.split("/") if s]
 
 

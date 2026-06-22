@@ -3,13 +3,16 @@
 ## 包依赖图
 
 ```
-robot_msgs ─────┐                         （纯消息定义，最底层）
-                ├──→ robot_hardware ──┐
-robot_common ───┤──→ robot_perception ─┼──→ robot_bringup
-                └──→ robot_control ────┘   （集成层，编排启动）
+robot_msgs ─────┬──→ robot_hardware ──┐
+                ├──→ robot_perception_py ─┼──→ robot_bringup
+                └──→ robot_control ──────┘   （集成层，编排启动）
+
+robot_common ────→ robot_hardware            （运动学用其 math 工具）
 ```
 
-`robot_msgs` 与 `robot_common` 平级、互不依赖。它们是所有业务包的公共底座。
+`robot_msgs` 与 `robot_common` 平级、互不依赖。`robot_msgs` 是所有业务包的公共消息底座；`robot_common` 提供 C++ 工具，示范工程中 `robot_hardware` 用了它的数学工具。
+
+**混合语言**：hardware/control 是 C++（实时层），perception 是 Python（AI/快速迭代层）。
 
 > 图的 dot 源：`docs/dependency_graph.dot`（由 `make graph` 重新生成）。
 
@@ -20,8 +23,8 @@ robot_common ───┤──→ robot_perception ─┼──→ robot_bringu
 | `robot_msgs` | messages | 团队公共 msg/srv/action（`MotorState`、`ObstacleArray`、`EmergencyStop`…） |
 | `robot_common` | library | 纯 C++ 工具（PID 控制器、数学工具），**零 ROS2 依赖** |
 | `robot_hardware` | node | 差速驱动运动学、里程计发布、紧急停止服务 |
-| `robot_perception` | node | 激光点网格聚类，输出障碍物列表 |
-| `robot_control` | node | 基于 PID 的避障速度调节，输出 `cmd_vel` |
+| `robot_perception_py` | node (Python) | 激光点求质心，输出障碍物列表 |
+| `robot_control` | node | 基于距离阈值的避障速度调节，输出 `cmd_vel` |
 | `robot_bringup` | bringup | launch 文件 + 系统级配置，编排上述节点的启动 |
 
 ## 分层约束（编译期可校验）
@@ -44,8 +47,8 @@ messages(0) < library(1) < node(2) < bringup(3)
                               │
                               ▼
   ┌─────────────────┐   ┌──────────────────┐
-  │ robot_hardware  │   │ robot_perception │
-  │  电机读数       │   │  网格聚类        │
+  │ robot_hardware  │   │ robot_perception_py│
+  │  轮速读数       │   │  质心提取         │
   │  → 运动学积分   │   │  → 障碍物列表    │
   └────────┬────────┘   └────────┬─────────┘
            │                     │
@@ -55,7 +58,7 @@ messages(0) < library(1) < node(2) < bringup(3)
                      ▼
             ┌─────────────────┐
             │  robot_control  │
-            │  PID 避障       │
+            │  阈值避障       │
             │  → cmd_vel      │
             └─────────────────┘
                      │

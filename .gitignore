@@ -1,0 +1,26 @@
+# ROS2 / colcon 构建产物
+/build/
+/install/
+/log/
+
+# Python（校验脚本、launch.py 的字节码）
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 工具生成物（报告含时间戳，由 CI 上传 artifact）
+docs/arch-report.md

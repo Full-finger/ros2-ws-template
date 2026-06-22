@@ -28,7 +28,6 @@ def generate_launch_description():
             name='robot_control',
             output='screen',
             remappings=[
-                ('~/input/odom', '/robot_hardware/output/odom'),
                 ('~/output/cmd_vel', '/cmd_vel'),
             ],
             parameters=[os.path.join(control_share, 'config', 'params.yaml')],

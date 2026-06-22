@@ -24,9 +24,12 @@ SCRIPTS := scripts
 # ═══════════════════════════════════════════════════════════
 #  脚手架
 # ═══════════════════════════════════════════════════════════
-.PHONY: new-node new-lib new-msgs new-bringup
-new-node: ## 创建业务节点包：make new-node NAME=robot_foo
+.PHONY: new-node new-node-py new-lib new-msgs new-bringup
+new-node: ## 创建业务节点包（C++）：make new-node NAME=robot_foo
 	@$(SCRIPTS)/new_pkg.sh node $(NAME)
+
+new-node-py: ## 创建业务节点包（Python）：make new-node-py NAME=robot_foo_py
+	@$(SCRIPTS)/new_pkg.sh node-py $(NAME)
 
 new-lib: ## 创建纯 C++ 库包：make new-lib NAME=robot_foo
 	@$(SCRIPTS)/new_pkg.sh library $(NAME)
@@ -58,6 +61,13 @@ validate-topics: ## topic 命名规范
 
 validate-layers: ## 三层架构 include 边界（model/service/library 零 ROS2）
 	@$(PYTHON) $(SCRIPTS)/validate_layers.py
+
+# ═══════════════════════════════════════════════════════════
+#  架构与质量报告
+# ═══════════════════════════════════════════════════════════
+.PHONY: arch-check
+arch-check: ## 生成架构合规性与代码质量报告 docs/arch-report.md
+	@$(PYTHON) $(SCRIPTS)/arch_check.py
 
 # ═══════════════════════════════════════════════════════════
 #  文档工具

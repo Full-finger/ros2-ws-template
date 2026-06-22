@@ -10,7 +10,6 @@
 
   <depend>rclcpp</depend>
   <depend>nav_msgs</depend>
-  <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>robot_common</depend>
   <depend>robot_msgs</depend>

@@ -43,10 +43,12 @@ colcon test-result --verbose                         # 看结果
 ## 3. 提交前自检（最重要）
 
 ```bash
-make validate-all    # schema + 交叉 + 依赖链 + topic 命名，<5 秒
+make validate-all    # 接口契约校验：schema + 交叉 + 依赖链 + topic 命名，<5 秒
+make arch-check      # 架构与质量报告：三层完整性 + 测试覆盖 + 文件规模
 ```
 
-这条命令 **必须全绿才能提交**。CI 跑的是同一套校验，本地过了 CI 一般就过了。
+`validate-all` 必须全绿才能提交（CI 跑同一套）。`arch-check` 生成 `docs/arch-report.md`，
+A 类问题（三层缺失/缺测试）会令 CI 失败，B 类（行数/TODO）仅供参考。
 
 如果装了 pre-commit（`pre-commit install`），提交时会自动跑格式化和 schema 校验。
 
@@ -55,7 +57,8 @@ make validate-all    # schema + 交叉 + 依赖链 + topic 命名，<5 秒
 按类型选模板，一行命令：
 
 ```bash
-make new-node    NAME=my_detector      # 业务节点（有 ROS2 节点）
+make new-node    NAME=my_detector      # 业务节点（C++，实时层默认）
+make new-node-py NAME=my_detector_py   # 业务节点（Python，AI/快速迭代）
 make new-lib     NAME=my_utils         # 纯 C++ 库
 make new-msgs    NAME=my_msgs          # 自定义消息
 make new-bringup NAME=my_bringup       # 集成 launch 包
@@ -66,10 +69,12 @@ make new-bringup NAME=my_bringup       # 集成 launch 包
 1. 改 `package.xml` 的 `maintainer` / `license`
 2. 改 `plugin.yaml` 填真实接口（topic / 参数 / 依赖）
 3. 写 `model` → `service` → `controller`
-4. 在 `test/` 里给 service 层写 gtest
+4. 在 `test/` 里给 service 层写测试（C++ 用 gtest，Python 用 pytest）
 5. `make validate-all` → 提交
 
-> ⚠ 包名即约定：**包名 == C++ 命名空间 == include 目录**。三者必须一致，脚手架已保证。
+> ⚠ 包名即约定：**包名 == 命名空间 == 入口目录**。三者必须一致，脚手架已保证。
+>
+> **Python 包名建议带 `_py` 后缀**（如 `robot_perception_py`），和同名 C++ 包区分；Python 模块目录 = 包名。
 
 ## 5. 看懂现有代码
 
@@ -79,7 +84,7 @@ make new-bringup NAME=my_bringup       # 集成 launch 包
 src/robot_control/
 ├── include/robot_control/
 │   ├── model/types.hpp              # Threat、TwistCmd、Config
-│   ├── service/safety_velocity.hpp  # 用 robot_common::PID 算避障速度
+│   ├── service/safety_velocity.hpp  # 距离阈值避障：近则停车转向
 │   └── controller/main_node.hpp     # 订阅 obstacles → 发布 cmd_vel
 ├── test/test_safety_velocity.cpp    # 纯逻辑测试，不碰 ROS2
 └── plugin.yaml                      # 接口契约

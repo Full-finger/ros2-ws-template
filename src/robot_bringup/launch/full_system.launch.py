@@ -15,9 +15,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     hardware_share = get_package_share_directory('robot_hardware')
-    perception_share = get_package_share_directory('robot_perception')
+    perception_share = get_package_share_directory('robot_perception_py')
     control_share = get_package_share_directory('robot_control')
-    bringup_share = get_package_share_directory('robot_bringup')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
 
@@ -41,7 +40,7 @@ def generate_launch_description():
 
         # ── 感知层 ──
         Node(
-            package='robot_perception',
+            package='robot_perception_py',
             executable='main_node',
             name='robot_perception',
             output='screen',
@@ -60,7 +59,6 @@ def generate_launch_description():
             output='screen',
             remappings=[
                 ('~/input/obstacles', '/robot_perception/output/obstacles'),
-                ('~/input/odom', '/robot_hardware/output/odom'),
                 ('~/output/cmd_vel', '/cmd_vel'),
             ],
             parameters=[
