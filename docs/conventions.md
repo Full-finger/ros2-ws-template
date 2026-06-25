@@ -63,6 +63,9 @@ plugin.yaml   runtime.node: "robot_control::controller::MainNode"
 - 元信息（name/version/maintainer/license）**只在 `package.xml`**，`plugin.yaml` 不重复。
 - `depends_on` 列运行时依赖的本项目包，必须 ⊆ `package.xml` 的 `<depend>`。
 - 参数的 `default` 类型必须和 `type` 匹配（`double` 配数字、`string_array` 配字符串数组）。
+- `config/*.yaml` 里的每个参数键必须被某个 node 包的 `plugin.yaml` 声明过
+  ——防止参数名 typo / 大小写错 / 未声明导致 config 静默回退默认值
+  （节点名允许与包名不同，按"全局声明并集"判定；`/**` 通配跳过）。
 - 校验：`make validate-schema` + `make validate-cross`。
 
 ## Git 与提交

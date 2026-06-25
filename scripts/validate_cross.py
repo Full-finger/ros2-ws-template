@@ -2,12 +2,14 @@
 """
 scripts/validate_cross.py
 
-校验 plugin.yaml 与 package.xml 之间的一致性:
+校验 ROS2 声明文件之间的交叉一致性 (plugin.yaml / package.xml / config):
   1. package.xml <name> == 所在目录名
   2. plugin.yaml depends_on ⊆ package.xml 的全部依赖标签
   3. type=node: runtime.node 顶层 namespace == package.xml <name>
   4. type=messages: plugin.yaml 声明的 msg/srv/action 文件实际存在
   5. type=bringup: subpackages 列出的包在本项目 src/ 中存在
+  6. config/*.yaml 的每个参数键必须被某个 node 包的 plugin.yaml 声明
+     （防参数名 typo / 大小写错 / 未声明导致 config 静默回退默认值）
 
 依赖: 仅 stdlib (xml.etree.ElementTree) + pyyaml。
 退出码: 0 全部通过, 1 有错误。
@@ -130,6 +132,40 @@ def check_bringup_subpackages(plugin: dict, pkg_dir: Path) -> list:
     return errs
 
 
+def check_config_params_subset_declared(
+    configs: list, node_declared_params: dict
+) -> list:
+    """config/*.yaml 的每个参数键必须被某个 node 包的 plugin.yaml 声明过。
+
+    防止参数名 typo / 大小写错 / 未声明，导致 params.yaml 静默回退到
+    plugin.yaml 的默认值而难以察觉（这是新人最高频的真实坑之一）。
+
+    节点名（config 顶层 key）允许与包名不同（如包 robot_perception_py
+    的节点名是 robot_perception），故按"全局声明并集"判定，而非按节点名
+    精确归属到单一包：
+      - 能 100% 拦住未声明参数（核心目标）
+      - 跨包误置（把 A 节点的参数塞进 B 节点的 block）不报，属已知取舍
+    ROS2 的 '/**' 通配节点名无法确定归属，跳过。
+    """
+    union = set()
+    for names in node_declared_params.values():
+        union |= names
+    errs = []
+    for cfg in configs:
+        data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {}
+        for node_name, block in data.items():
+            if node_name == "/**":
+                continue
+            params = (block or {}).get("ros__parameters") or {}
+            for key in params:
+                if key not in union:
+                    errs.append(
+                        f"  ✗ {cfg.relative_to(ROOT)}: 节点 '{node_name}' "
+                        f"参数 '{key}' 未在任何 plugin.yaml parameters 中声明"
+                    )
+    return errs
+
+
 def main() -> int:
     if not SRC.exists():
         print(f"错误: {SRC} 不存在", file=sys.stderr)
@@ -137,6 +173,7 @@ def main() -> int:
 
     all_errors: list = []
     count = 0
+    node_declared_params: dict[str, set] = {}
 
     print("== plugin.yaml ↔ package.xml 交叉校验 ==")
     # 先收集所有包名，供反向依赖检查
@@ -164,6 +201,11 @@ def main() -> int:
 
         if pkg_type == "node":
             all_errors.extend(check_node_namespace(plugin, pkg_xml["name"], pkg_dir))
+            # 收集本包声明的参数名，供后续 config 键一致性校验
+            node_declared_params[pkg_dir.name] = {
+                p["name"]
+                for p in ((plugin.get("runtime") or {}).get("parameters") or [])
+            }
         if pkg_type == "messages":
             all_errors.extend(check_interfaces_exist(plugin, pkg_dir))
         if pkg_type == "bringup":
@@ -178,6 +220,14 @@ def main() -> int:
         print(f"  {pkg_dir.name:25s} type={pkg_type:10s} ✓")
 
     print(f"\n检查了 {count} 个包")
+
+    # ── config 参数键 ⊆ plugin.yaml 声明（防 typo / 未声明静默不生效）──
+    configs = sorted(SRC.glob("*/config/*.yaml"))
+    all_errors.extend(
+        check_config_params_subset_declared(configs, node_declared_params)
+    )
+    print(f"校验 {len(configs)} 个 config 文件（参数键 ⊆ plugin.yaml 声明）")
+
     if all_errors:
         print(f"\n发现 {len(all_errors)} 个问题:")
         for e in all_errors:
