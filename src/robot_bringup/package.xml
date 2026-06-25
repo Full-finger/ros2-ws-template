@@ -10,7 +10,7 @@
 
   <!-- 运行时依赖：本 bringup 启动这些节点 -->
   <exec_depend>robot_hardware</exec_depend>
-  <exec_depend>robot_perception</exec_depend>
+  <exec_depend>robot_perception_py</exec_depend>
   <exec_depend>robot_control</exec_depend>
   <exec_depend>robot_msgs</exec_depend>
 

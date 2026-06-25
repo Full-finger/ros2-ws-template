@@ -1,0 +1,5 @@
+# colcon 跳过此目录：这里放的是脚手架模板（package.xml 的 <name> 都是
+# __PACKAGE_NAME__ 占位符），不是真实的 ROS2 包。new_pkg.sh 会把它们
+# 复制到 src/<name> 并替换占位符后才成为合法包。
+# 没有此文件，colcon build 会因「Duplicate package names: __PACKAGE_NAME__」报错。
+# （colcon 的忽略标记文件名固定为 COLCON_IGNORE，全大写）

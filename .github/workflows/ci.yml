@@ -82,6 +82,11 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: ros:humble-ros-base
+    # ros:humble-ros-base 默认 shell 是 dash（sh），不认 `source`（bash 内建）。
+    # 统一用 bash，否则 source ROS 环境会报 "source: not found"。
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -110,21 +115,25 @@ jobs:
           source /opt/ros/${ROS_DISTRO}/setup.bash
           colcon test-result --verbose
 
-  # ═══ Stage 3: 代码风格（和 Stage 2 并行） ═══
+  # ═══ Stage 3: 代码风格（和 Stage 2 并行）
+  #     lint 不需要 ROS 运行时，用轻量 ubuntu runner + setup-python，
+  #     避免 ros:humble-ros-base 镜像无 pip3 / PEP668 系统级装包受阻。
+  # ═══
   lint:
     needs: validate
     runs-on: ubuntu-22.04
-    container:
-      image: ros:humble-ros-base
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
       - name: Install linters
-        run: |
-          apt-get update
-          # 版本与 .pre-commit-config.yaml 严格对齐（black/clang-format），
-          # 避免格式化结果漂移导致 CI 与本地不一致
-          pip3 install yamllint black==24.8.0 flake8==7.1.1 clang-format==18.1.8
+        # 版本与 .pre-commit-config.yaml 严格对齐（black/clang-format），
+        # 避免格式化结果漂移导致 CI 与本地不一致
+        run: pip install yamllint black==24.8.0 flake8==7.1.1 clang-format==18.1.8
 
       - name: YAML lint
         run: yamllint -d relaxed src/

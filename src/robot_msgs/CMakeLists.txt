@@ -3,6 +3,8 @@ project(robot_msgs)
 
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 # ── 生成消息/服务/动作接口 ──
 rosidl_generate_interfaces(${PROJECT_NAME}

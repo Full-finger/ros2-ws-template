@@ -17,6 +17,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
+# 导出头文件目录，使下游 find_package(robot_common) 后能直接
+# #include "robot_common/math_utils.hpp"（header-only 工具传递）。
+ament_export_include_directories(include)
+
 # ── 测试 ──
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
