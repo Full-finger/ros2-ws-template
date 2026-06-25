@@ -30,18 +30,18 @@ SRC = ROOT / "src"
 # C++：ROS2 client lib 的顶层包标记。命中任一即视为 ROS2 依赖。
 # _msgs/ 覆盖 *_msgs（含 action_msgs），_srvs/ 覆盖 *_srvs。
 ROS2_INCLUDE_RE = re.compile(
-    r'(rclcpp|rclpy|rcl/|_msgs/|_srvs/|'
-    r'tf2|rosidl_|pluginlib|message_filters|'
-    r'image_transport|class_loader|bond|'
-    r'actionlib|lifecycle)'
+    r"(rclcpp|rclpy|rcl/|_msgs/|_srvs/|"
+    r"tf2|rosidl_|pluginlib|message_filters|"
+    r"image_transport|class_loader|bond|"
+    r"actionlib|lifecycle)"
 )
 
 # Python：匹配 import 语句里的 ROS2 模块。
 # 形如：  import rclpy        from rclpy.node import Node
 #         import robot_msgs   from robot_msgs.msg import Obstacle
 ROS2_PY_IMPORT_RE = re.compile(
-    r'^\s*(?:from\s+(rclpy|rclpy\.[\w.]+|[a-z_]+_msgs(?:\.[\w.]+)?)\s+import'
-    r'|import\s+(rclpy|rclpy\.[\w.]+|[a-z_]+_msgs(?:\.[\w.]+)?))'
+    r"^\s*(?:from\s+(rclpy|rclpy\.[\w.]+|[a-z_]+_msgs(?:\.[\w.]+)?)\s+import"
+    r"|import\s+(rclpy|rclpy\.[\w.]+|[a-z_]+_msgs(?:\.[\w.]+)?))"
 )
 
 
@@ -64,14 +64,14 @@ def ros2_imports_in_file(path: Path) -> list:
     return hits
 
 
-def check_dir(d: Path, pkg: str, layer: str, violations: list,
-              language: str = "cpp") -> int:
+def check_dir(
+    d: Path, pkg: str, layer: str, violations: list, language: str = "cpp"
+) -> int:
     """检查某目录下所有源文件的 ROS2 依赖。返回扫描文件数。"""
     if not d.exists():
         return 0
     suffixes = (".py",) if language == "python" else (".hpp", ".cpp", ".h", ".cc")
-    detector = (ros2_imports_in_file if language == "python"
-                else ros2_includes_in_file)
+    detector = ros2_imports_in_file if language == "python" else ros2_includes_in_file
     count = 0
     for f in sorted(d.rglob("*")):
         if f.suffix not in suffixes:
@@ -80,7 +80,8 @@ def check_dir(d: Path, pkg: str, layer: str, violations: list,
         for hit in detector(f):
             violations.append(
                 f"  ✗ {pkg}/{layer}: {f.relative_to(ROOT)} 命中 ROS2 "
-                f"{'import' if language == 'python' else 'include'}: {hit}")
+                f"{'import' if language == 'python' else 'include'}: {hit}"
+            )
     return count
 
 
@@ -89,8 +90,7 @@ def check_cpp_node(pkg_dir: Path, pkg: str, violations: list) -> int:
     inc = pkg_dir / "include" / pkg
     scanned = check_dir(inc / "model", pkg, "model", violations)
     scanned += check_dir(inc / "service", pkg, "service", violations)
-    scanned += check_dir(pkg_dir / "src" / "service",
-                         pkg, "service(src)", violations)
+    scanned += check_dir(pkg_dir / "src" / "service", pkg, "service(src)", violations)
     return scanned
 
 
@@ -136,25 +136,31 @@ def main() -> int:
         ptype = data.get("type", "unknown")
         language = data.get("language", "cpp")  # 默认 cpp（向后兼容）
 
+        n = 0  # 本包扫描的源文件数（note 显示单包计数）
         if ptype == "node":
             if language == "python":
-                scanned += check_py_node(pkg_dir, pkg, violations)
-                note = f"py model+service 检查 ({scanned} 文件)"
+                n = check_py_node(pkg_dir, pkg, violations)
+                note = f"py model+service 检查 ({n} 文件)"
             else:
-                scanned += check_cpp_node(pkg_dir, pkg, violations)
-                note = f"cpp model+service 检查 ({scanned} 文件)"
+                n = check_cpp_node(pkg_dir, pkg, violations)
+                note = f"cpp model+service 检查 ({n} 文件)"
         elif ptype == "library":
             if language == "python":
                 # Python library 包暂不强制（少见，按需扩展）
                 note = "跳过 (Python library)"
             else:
-                scanned += check_cpp_library(pkg_dir, pkg, data, violations)
+                n = check_cpp_library(pkg_dir, pkg, data, violations)
                 no_ros2 = (data.get("exposes", {}) or {}).get(
-                    "no_ros2_dependency", False)
-                note = ("全库检查 (no_ros2_dependency=true)"
-                        if no_ros2 else "跳过 (no_ros2_dependency=false)")
+                    "no_ros2_dependency", False
+                )
+                note = (
+                    "全库检查 (no_ros2_dependency=true)"
+                    if no_ros2
+                    else "跳过 (no_ros2_dependency=false)"
+                )
         else:
             note = "跳过 (无源码)"
+        scanned += n
         print(f"  {pkg:20s} type={ptype:10s} lang={language:6s} {note}")
 
     if violations:

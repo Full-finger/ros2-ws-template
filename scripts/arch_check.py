@@ -25,24 +25,29 @@ REPORT = ROOT / "docs" / "arch-report.md"
 IS_TTY = sys.stdout.isatty()
 if IS_TTY:
     GREEN, RED, YELLOW, CYAN, RESET = (
-        "\033[32m", "\033[31m", "\033[33m", "\033[36m", "\033[0m")
+        "\033[32m",
+        "\033[31m",
+        "\033[33m",
+        "\033[36m",
+        "\033[0m",
+    )
 else:
     GREEN = RED = YELLOW = CYAN = RESET = ""
 
 # ── 各层文件行数阈值（参考 reconnaissance 实测，留足余量） ──
 LINE_THRESHOLDS = {
-    "model": 200,      # 数据结构，应很短
-    "service": 300,    # 业务逻辑，conventions 说 >200 行才拆 .cpp
-    "controller": 400, # ROS2 适配，允许稍长
-    "library": 300,    # 纯 C++ 库
-    "test": 400,       # 测试可稍长
+    "model": 200,  # 数据结构，应很短
+    "service": 300,  # 业务逻辑，conventions 说 >200 行才拆 .cpp
+    "controller": 400,  # ROS2 适配，允许稍长
+    "library": 300,  # 纯 C++ 库
+    "test": 400,  # 测试可稍长
 }
 INCLUDE_THRESHOLD = 20  # 单文件 #include 数量上限
 
 
 @dataclass
 class Finding:
-    level: str        # ✅/⚠️/❌ 对应 ok/warn/error
+    level: str  # ✅/⚠️/❌ 对应 ok/warn/error
     rule: str
     file: str
     line: int
@@ -52,7 +57,9 @@ class Finding:
 @dataclass
 class ReportData:
     a1_layer_completeness: list[Finding] = field(default_factory=list)
-    a2_test_coverage: list[tuple] = field(default_factory=list)  # (pkg, service, lang, has_test)
+    a2_test_coverage: list[tuple] = field(
+        default_factory=list
+    )  # (pkg, service, lang, has_test)
     b1_large_files: list[Finding] = field(default_factory=list)
     b2_todos: list[Finding] = field(default_factory=list)
     b3_many_includes: list[Finding] = field(default_factory=list)
@@ -106,10 +113,15 @@ def check_layer_completeness(pkgs: list[tuple[str, Path, str]]) -> list[Finding]
             layer_dir = root / layer
             files = list(layer_dir.glob(suffix)) if layer_dir.exists() else []
             if not files:
-                findings.append(Finding(
-                    "❌", "A1-layer-complete",
-                    f"src/{name}/{root.relative_to(d)}/{layer}/", 0,
-                    f"node 包缺少 {layer} 层（目录不存在或无 {suffix.strip('*')})"))
+                findings.append(
+                    Finding(
+                        "❌",
+                        "A1-layer-complete",
+                        f"src/{name}/{root.relative_to(d)}/{layer}/",
+                        0,
+                        f"node 包缺少 {layer} 层（目录不存在或无 {suffix.strip('*')})",
+                    )
+                )
     return findings
 
 
@@ -173,29 +185,38 @@ def scan_code_quality(data: ReportData) -> None:
         layer = classify_layer(rel)
         threshold = LINE_THRESHOLDS.get(layer, 300)
         if line_count > threshold:
-            data.b1_large_files.append(Finding(
-                "⚠️", f"B1-line-count({layer})",
-                str(rel), line_count,
-                f"{line_count} 行超过 {layer} 层阈值 {threshold}"))
+            data.b1_large_files.append(
+                Finding(
+                    "⚠️",
+                    f"B1-line-count({layer})",
+                    str(rel),
+                    line_count,
+                    f"{line_count} 行超过 {layer} 层阈值 {threshold}",
+                )
+            )
 
         # B2 TODO/FIXME
         for i, line in enumerate(lines, 1):
             if todo_re.search(line):
                 tag = todo_re.search(line).group(1)
                 snippet = line.strip()[:80]
-                data.b2_todos.append(Finding(
-                    "ℹ️", f"B2-{tag}", str(rel), i, snippet))
+                data.b2_todos.append(Finding("ℹ️", f"B2-{tag}", str(rel), i, snippet))
 
         # B3 include 数（C++）。Python 包不适用，跳过
         if f.suffix == ".py":
             inc_count = 0
         else:
-            inc_count = sum(1 for l in lines if l.strip().startswith("#include"))
+            inc_count = sum(1 for line in lines if line.strip().startswith("#include"))
         if inc_count > INCLUDE_THRESHOLD:
-            data.b3_many_includes.append(Finding(
-                "⚠️", "B3-many-includes",
-                str(rel), inc_count,
-                f"{inc_count} 个 #include 超过阈值 {INCLUDE_THRESHOLD}"))
+            data.b3_many_includes.append(
+                Finding(
+                    "⚠️",
+                    "B3-many-includes",
+                    str(rel),
+                    inc_count,
+                    f"{inc_count} 个 #include 超过阈值 {INCLUDE_THRESHOLD}",
+                )
+            )
 
 
 def collect() -> ReportData:
@@ -225,16 +246,24 @@ def generate_report(data: ReportData) -> None:
     lines = []
     lines.append("# 架构合规性与代码质量报告")
     lines.append("")
-    lines.append("> 由 `scripts/arch_check.py` 自动生成。与 `validate_*.py`（接口契约）互补，"
-                 "专注**架构完整性**与**代码质量**。")
+    lines.append(
+        "> 由 `scripts/arch_check.py` 自动生成。与 `validate_*.py`（接口契约）互补，"
+        "专注**架构完整性**与**代码质量**。"
+    )
     lines.append(">")
-    lines.append("> **核心原则**：每个 node 包强制 model/service/controller 三层；"
-                 "service 零 ROS2 依赖且必有 gtest；删掉 controller，service 能独立编译。")
+    lines.append(
+        "> **核心原则**：每个 node 包强制 model/service/controller 三层；"
+        "service 零 ROS2 依赖且必有 gtest；删掉 controller，service 能独立编译。"
+    )
     lines.append(">")
-    lines.append("> ⚠️ **免责声明**：本工具仅做结构性检查与模式匹配，"
-                 "存在漏报和误报，不能替代 code review。")
+    lines.append(
+        "> ⚠️ **免责声明**：本工具仅做结构性检查与模式匹配，"
+        "存在漏报和误报，不能替代 code review。"
+    )
     lines.append("")
-    lines.append(f"生成时间：{__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append(
+        f"生成时间：{__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    )
     lines.append(f"扫描文件：{data.scanned_files} 个源文件")
     lines.append("")
 
@@ -243,19 +272,27 @@ def generate_report(data: ReportData) -> None:
     lines.append("")
     lines.append("| 类别 | 检查项 | 发现数 |")
     lines.append("|---|---|---|")
-    lines.append(f"| A1 — 三层完整性 | node 包 model/service/controller 目录 | "
-                 f"{GREEN if a1_count == 0 else RED}{a1_count}{RESET} |")
-    lines.append(f"| A2 — 测试覆盖度 | service 缺少对应 gtest | "
-                 f"{GREEN if a2_missing == 0 else RED}{a2_missing}{RESET} |")
-    lines.append(f"| B1 — 文件行数 | 超出层级阈值 | "
-                 f"{GREEN if b1_count == 0 else YELLOW}{b1_count}{RESET} |")
-    lines.append(f"| B2 — 待办标记 | TODO/FIXME/HACK | "
-                 f"{CYAN}{b2_count}{RESET} |")
-    lines.append(f"| B3 — include 数 | 单文件 #include 过多 | "
-                 f"{GREEN if b3_count == 0 else YELLOW}{b3_count}{RESET} |")
+    lines.append(
+        f"| A1 — 三层完整性 | node 包 model/service/controller 目录 | "
+        f"{GREEN if a1_count == 0 else RED}{a1_count}{RESET} |"
+    )
+    lines.append(
+        f"| A2 — 测试覆盖度 | service 缺少对应 gtest | "
+        f"{GREEN if a2_missing == 0 else RED}{a2_missing}{RESET} |"
+    )
+    lines.append(
+        f"| B1 — 文件行数 | 超出层级阈值 | "
+        f"{GREEN if b1_count == 0 else YELLOW}{b1_count}{RESET} |"
+    )
+    lines.append(f"| B2 — 待办标记 | TODO/FIXME/HACK | " f"{CYAN}{b2_count}{RESET} |")
+    lines.append(
+        f"| B3 — include 数 | 单文件 #include 过多 | "
+        f"{GREEN if b3_count == 0 else YELLOW}{b3_count}{RESET} |"
+    )
     lines.append("")
-    lines.append(f"**问题总计：{total_findings}**"
-                 f"（B2 待办标记仅供参考，不计入问题数）")
+    lines.append(
+        f"**问题总计：{total_findings}**" f"（B2 待办标记仅供参考，不计入问题数）"
+    )
     lines.append("")
 
     # ── 2. 架构层级图 ──
@@ -266,9 +303,13 @@ def generate_report(data: ReportData) -> None:
     lines.append("    subgraph 包内三层")
     lines.append('        M["📊 model<br/><small>纯数据结构 · 零 ROS2</small>"]')
     lines.append('        S["⚙️ service<br/><small>纯业务逻辑 · 必有 gtest</small>"]')
-    lines.append('        C["📋 controller<br/><small>ROS2 适配 · 唯一接触 rclcpp</small>"]')
+    lines.append(
+        '        C["📋 controller<br/><small>ROS2 适配 · 唯一接触 rclcpp</small>"]'
+    )
     lines.append("    end")
-    lines.append('    ROS["🔄 rclcpp / *_msgs<br/><small>仅 controller 可 include</small>"]')
+    lines.append(
+        '    ROS["🔄 rclcpp / *_msgs<br/><small>仅 controller 可 include</small>"]'
+    )
     lines.append("    C --> S --> M")
     lines.append("    C -.->|转换/收发| ROS")
     lines.append('    S -.- T["✅ gtest<br/><small>裸跑 service</small>"]')
@@ -286,7 +327,9 @@ def generate_report(data: ReportData) -> None:
         lines.append("| 级别 | 规则 | 路径 | 说明 |")
         lines.append("|---|---|---|---|")
         for f in data.a1_layer_completeness:
-            lines.append(f"| {md_severity_emoji(f.level)} | `{f.rule}` | `{f.file}` | {f.message} |")
+            lines.append(
+                f"| {md_severity_emoji(f.level)} | `{f.rule}` | `{f.file}` | {f.message} |"
+            )
     lines.append("")
 
     lines.append("### 3b. A2 — Service 测试覆盖度")
@@ -313,7 +356,9 @@ def generate_report(data: ReportData) -> None:
         lines.append("| 级别 | 文件 | 行数 | 说明 |")
         lines.append("|---|---|---|---|")
         for f in data.b1_large_files:
-            lines.append(f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |")
+            lines.append(
+                f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |"
+            )
     lines.append("")
 
     lines.append("### 4b. B2 — 待办标记（TODO/FIXME）")
@@ -324,7 +369,9 @@ def generate_report(data: ReportData) -> None:
         lines.append("| 标记 | 文件 | 行号 | 内容 |")
         lines.append("|---|---|---|---|")
         for f in data.b2_todos:
-            lines.append(f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |")
+            lines.append(
+                f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |"
+            )
     lines.append("")
 
     lines.append("### 4c. B3 — 单文件 include 过多")
@@ -335,7 +382,9 @@ def generate_report(data: ReportData) -> None:
         lines.append("| 级别 | 文件 | include 数 | 说明 |")
         lines.append("|---|---|---|---|")
         for f in data.b3_many_includes:
-            lines.append(f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |")
+            lines.append(
+                f"| {md_severity_emoji(f.level)} | `{f.file}` | {f.line} | {f.message} |"
+            )
     lines.append("")
 
     # ── 5. 附录 ──
@@ -345,8 +394,13 @@ def generate_report(data: ReportData) -> None:
     lines.append("")
     lines.append("| 工具 | 关注点 | 示例 |")
     lines.append("|---|---|---|")
-    lines.append("| `validate_*.py`（5 个） | **接口契约** | plugin.yaml ↔ package.xml 一致性、include 边界、依赖链分层、topic 命名 |")
-    lines.append("| `arch_check.py`（本工具） | **架构完整性与代码质量** | 三层目录齐全、service 有测试、文件规模、TODO |")
+    lines.append(
+        "| `validate_*.py`（5 个） | **接口契约** | "
+        "plugin.yaml ↔ package.xml 一致性、include 边界、依赖链分层、topic 命名 |"
+    )
+    lines.append(
+        "| `arch_check.py`（本工具） | **架构完整性与代码质量** | 三层目录齐全、service 有测试、文件规模、TODO |"
+    )
     lines.append("")
     lines.append("### 各层职责（参见 docs/conventions.md）")
     lines.append("")
@@ -354,15 +408,21 @@ def generate_report(data: ReportData) -> None:
     lines.append("|---|---|---|")
     lines.append("| **model** | 纯数据结构 | 任何逻辑、ROS2 |")
     lines.append("| **service** | 纯业务逻辑、调 model | `rclcpp/*`、`*_msgs/*` |")
-    lines.append("| **controller** | ROS2 收发、类型转换 | 业务逻辑（只能调 service） |")
+    lines.append(
+        "| **controller** | ROS2 收发、类型转换 | 业务逻辑（只能调 service） |"
+    )
     lines.append("")
     lines.append("### 文件行数阈值")
     lines.append("")
     lines.append("| 层 | 阈值 | 依据 |")
     lines.append("|---|---|---|")
     lines.append(f"| model | {LINE_THRESHOLDS['model']} | 数据结构应简短 |")
-    lines.append(f"| service | {LINE_THRESHOLDS['service']} | conventions 约定 >200 行拆 .cpp |")
-    lines.append(f"| controller | {LINE_THRESHOLDS['controller']} | 允许稍长（含 ROS2 胶水） |")
+    lines.append(
+        f"| service | {LINE_THRESHOLDS['service']} | conventions 约定 >200 行拆 .cpp |"
+    )
+    lines.append(
+        f"| controller | {LINE_THRESHOLDS['controller']} | 允许稍长（含 ROS2 胶水） |"
+    )
     lines.append(f"| library | {LINE_THRESHOLDS['library']} | 纯 C++ 库 |")
     lines.append(f"| test | {LINE_THRESHOLDS['test']} | 测试可稍长 |")
     lines.append("")
@@ -373,7 +433,7 @@ def generate_report(data: ReportData) -> None:
 
 # ═══════════════════════════════════════════════════════════
 #  控制台摘要
-#═══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 def console_summary(data: ReportData) -> int:
     a1 = len(data.a1_layer_completeness)
     a2 = sum(1 for *_, has in data.a2_test_coverage if not has)
@@ -400,11 +460,15 @@ def console_summary(data: ReportData) -> int:
     print(f"  {'B3 — include 数过多':<30} {fmt(b3, warn=True)}")
     print()
     if problems == 0:
-        print(f"{GREEN}  ✅ 架构检查通过（{data.scanned_files} 文件扫描，"
-              f"{b2} 个待办标记仅供参考）{RESET}")
+        print(
+            f"{GREEN}  ✅ 架构检查通过（{data.scanned_files} 文件扫描，"
+            f"{b2} 个待办标记仅供参考）{RESET}"
+        )
     else:
-        print(f"{YELLOW}  ⚠ 发现 {problems} 个问题"
-              f"（详见 {REPORT.relative_to(ROOT)}）{RESET}")
+        print(
+            f"{YELLOW}  ⚠ 发现 {problems} 个问题"
+            f"（详见 {REPORT.relative_to(ROOT)}）{RESET}"
+        )
     print()
     return 1 if problems else 0
 
