@@ -29,6 +29,7 @@ SCHEMA_PATH = ROOT / "schemas" / "topic_naming.schema.json"
 def load_rules() -> dict:
     import json
     from jsonschema import Draft7Validator
+
     if not RULES_PATH.exists():
         print(f"错误: 缺少 {RULES_PATH}", file=sys.stderr)
         sys.exit(1)
@@ -64,12 +65,16 @@ def check_topic(topic: str, rules: dict, src: str) -> list:
     if topic.startswith("~/"):
         first = segs[0] if segs else ""
         if first and first not in allowed_prefixes:
-            errs.append(f"    {src}: 私有 topic 首段 '{first}' 不在语义前缀列表 "
-                        f"{sorted(allowed_prefixes)}")
+            errs.append(
+                f"    {src}: 私有 topic 首段 '{first}' 不在语义前缀列表 "
+                f"{sorted(allowed_prefixes)}"
+            )
 
         # 深度
         if len(segs) < style["max_depth"]:
-            errs.append(f"    {src}: 私有 topic 层级过浅 (需要 >= {style['max_depth']})")
+            errs.append(
+                f"    {src}: 私有 topic 层级过浅 (需要 >= {style['max_depth']})"
+            )
 
     # forbidden words
     for s in segs:

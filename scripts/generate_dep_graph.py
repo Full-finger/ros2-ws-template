@@ -16,18 +16,17 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 
 COLORS = {
-    "messages": "#c8e6c9",   # 绿
-    "library": "#bbdefb",    # 蓝
-    "node": "#fff9c4",       # 黄
-    "bringup": "#f8bbd0",    # 粉
+    "messages": "#c8e6c9",  # 绿
+    "library": "#bbdefb",  # 蓝
+    "node": "#fff9c4",  # 黄
+    "bringup": "#f8bbd0",  # 粉
 }
 
 
 def main() -> int:
     print("digraph G {")
     print("  rankdir=LR;")
-    print('  node [shape=box, style="rounded,filled", '
-          'fontname="Helvetica"];')
+    print('  node [shape=box, style="rounded,filled", ' 'fontname="Helvetica"];')
     print()
 
     pkgs = {}

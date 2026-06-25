@@ -61,6 +61,8 @@ class ObstacleExtractorService:
         return self._config
 
     def _is_valid(self, value: float) -> bool:
-        return (math.isfinite(value)
-                and value >= self._config.min_range
-                and value <= self._config.max_range)
+        return (
+            math.isfinite(value)
+            and value >= self._config.min_range
+            and value <= self._config.max_range
+        )

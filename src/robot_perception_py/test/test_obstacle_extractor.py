@@ -31,10 +31,12 @@ def test_single_point_at_center(svc: ObstacleExtractorService) -> None:
 
 def test_multiple_points_centroid(svc: ObstacleExtractorService) -> None:
     # 正前方 1m 和正左方 1m，质心 (0.5, 0.5)
-    result = svc.extract([
-        LaserPoint(range=1.0, angle=0.0),          # (1, 0)
-        LaserPoint(range=1.0, angle=math.pi / 2),  # (0, 1)
-    ])
+    result = svc.extract(
+        [
+            LaserPoint(range=1.0, angle=0.0),  # (1, 0)
+            LaserPoint(range=1.0, angle=math.pi / 2),  # (0, 1)
+        ]
+    )
     assert len(result) == 1
     assert result[0].x == pytest.approx(0.5)
     assert result[0].y == pytest.approx(0.5)
@@ -42,10 +44,12 @@ def test_multiple_points_centroid(svc: ObstacleExtractorService) -> None:
 
 
 def test_out_of_range_points_dropped(svc: ObstacleExtractorService) -> None:
-    result = svc.extract([
-        LaserPoint(range=10.0, angle=0.0),   # 超 max_range
-        LaserPoint(range=0.01, angle=0.0),   # 小于 min_range
-    ])
+    result = svc.extract(
+        [
+            LaserPoint(range=10.0, angle=0.0),  # 超 max_range
+            LaserPoint(range=0.01, angle=0.0),  # 小于 min_range
+        ]
+    )
     assert result == []
 
 

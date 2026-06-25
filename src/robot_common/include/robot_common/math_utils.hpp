@@ -12,7 +12,8 @@ namespace robot_common::math {
 inline double wrap_angle(double angle) {
     constexpr double TWO_PI = 2.0 * M_PI;
     double a = std::fmod(angle + M_PI, TWO_PI);
-    if (a < 0.0) a += TWO_PI;
+    if (a < 0.0)
+        a += TWO_PI;
     return a - M_PI;
 }
 

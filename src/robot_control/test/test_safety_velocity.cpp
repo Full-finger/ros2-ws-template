@@ -38,8 +38,8 @@ TEST_F(SafetyVelocityTest, FarThreatFullSpeed) {
 TEST_F(SafetyVelocityTest, FrontalThreatStops) {
     Threat t{.distance = 0.3, .bearing = 0.0};  // 正前方，很近
     TwistCmd cmd = svc_->compute({t}, dt);
-    EXPECT_NEAR(cmd.linear, 0.0, 1e-9);   // 立即停车
-    EXPECT_NEAR(cmd.angular, -1.5, 1e-9); // bearing=0 走 >=0 分支，向右转
+    EXPECT_NEAR(cmd.linear, 0.0, 1e-9);    // 立即停车
+    EXPECT_NEAR(cmd.angular, -1.5, 1e-9);  // bearing=0 走 >=0 分支，向右转
 }
 
 TEST_F(SafetyVelocityTest, LeftThreatTurnsRight) {

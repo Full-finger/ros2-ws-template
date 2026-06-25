@@ -83,7 +83,8 @@ def check_layering(pkgs: dict) -> list:
             if self_rank < dep_rank:
                 errs.append(
                     f"  ✗ {name}({info['type']}) 不允许依赖 {dep}"
-                    f"({pkgs[dep]['type']}): 违反分层约束")
+                    f"({pkgs[dep]['type']}): 违反分层约束"
+                )
     return errs
 
 

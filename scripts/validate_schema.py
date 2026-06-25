@@ -36,7 +36,11 @@ def get_validator(name: str) -> Draft7Validator:
 def fmt_errors(errors) -> list:
     out = []
     for e in errors:
-        loc = "/" + "/".join(str(p) for p in e.absolute_path) if e.absolute_path else "(root)"
+        loc = (
+            "/" + "/".join(str(p) for p in e.absolute_path)
+            if e.absolute_path
+            else "(root)"
+        )
         out.append(f"    @{loc}: {e.message}")
     return out
 

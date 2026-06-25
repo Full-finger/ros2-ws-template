@@ -9,7 +9,7 @@ namespace robot_control::model {
 
 class ControlError : public std::runtime_error {
 public:
-    explicit ControlError(const std::string &msg) : std::runtime_error(msg) {}
+    explicit ControlError(const std::string& msg) : std::runtime_error(msg) {}
 };
 
 }  // namespace robot_control::model

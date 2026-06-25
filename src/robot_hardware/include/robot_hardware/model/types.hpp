@@ -16,9 +16,9 @@ struct MotorReading {
 struct OdometryData {
     double x = 0.0;
     double y = 0.0;
-    double theta = 0.0;            // 朝向 [-pi, pi]
-    double linear_velocity = 0.0;  // m/s
-    double angular_velocity = 0.0; // rad/s
+    double theta = 0.0;             // 朝向 [-pi, pi]
+    double linear_velocity = 0.0;   // m/s
+    double angular_velocity = 0.0;  // rad/s
     double timestamp = 0.0;
 };
 

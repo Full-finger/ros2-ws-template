@@ -11,20 +11,20 @@
 #include <memory>
 #include <string>
 
-#include <rclcpp/rclcpp.hpp>
-#include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
-
-#include <robot_msgs/srv/emergency_stop.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "robot_hardware/model/types.hpp"
 #include "robot_hardware/service/differential_drive.hpp"
+
+#include <robot_msgs/srv/emergency_stop.hpp>
 
 namespace robot_hardware::controller {
 
 class MainNode : public rclcpp::Node {
 public:
-    explicit MainNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions())
+    explicit MainNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions())
         : Node("robot_hardware", options) {
         // ── 参数声明 ──
         declare_parameter<std::string>("serial_port", "/dev/ttyUSB0");
@@ -53,12 +53,11 @@ public:
 
         // ── 主循环 timer ──
         const auto period = std::chrono::duration<double>(1.0 / config.update_rate);
-        timer_ = create_wall_timer(
-            std::chrono::duration_cast<std::chrono::nanoseconds>(period),
-            [this]() { on_tick(); });
+        timer_ = create_wall_timer(std::chrono::duration_cast<std::chrono::nanoseconds>(period),
+                                   [this]() { on_tick(); });
 
-        RCLCPP_INFO(get_logger(), "硬件节点已启动 (%.1f Hz, %s)",
-                    config.update_rate, config.serial_port.c_str());
+        RCLCPP_INFO(get_logger(), "硬件节点已启动 (%.1f Hz, %s)", config.update_rate,
+                    config.serial_port.c_str());
     }
 
 private:
@@ -74,8 +73,8 @@ private:
         reading.right_wheel_speed = 0.0;
         reading.timestamp = now_s;
 
-        model::OdometryData odom = drive_service_->update_odometry(
-            reading, 1.0 / drive_service_->config().update_rate);
+        model::OdometryData odom =
+            drive_service_->update_odometry(reading, 1.0 / drive_service_->config().update_rate);
 
         // model::OdometryData → nav_msgs::msg::Odometry
         nav_msgs::msg::Odometry odom_msg;

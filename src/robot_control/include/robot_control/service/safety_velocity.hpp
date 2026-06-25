@@ -12,26 +12,24 @@
 
 #include <vector>
 
-#include "robot_control/model/types.hpp"
 #include "robot_control/model/errors.hpp"
+#include "robot_control/model/types.hpp"
 
 namespace robot_control::service {
 
 class SafetyVelocityService {
 public:
-    explicit SafetyVelocityService(const model::Config &config)
-        : config_(config) {}
+    explicit SafetyVelocityService(const model::Config& config) : config_(config) {}
 
     /// 计算安全速度指令
     /// @param threats 当前威胁列表（来自感知层）
     /// @param dt      距上次调用的时间步（秒）；仅用于校验调用节律
-    model::TwistCmd compute(const std::vector<model::Threat> &threats,
-                            double dt) {
+    model::TwistCmd compute(const std::vector<model::Threat>& threats, double dt) {
         if (dt <= 0.0) {
             throw model::ControlError("dt 必须为正");
         }
 
-        const auto *nearest = find_nearest(threats);
+        const auto* nearest = find_nearest(threats);
         const bool safe = !nearest || nearest->distance >= config_.safe_distance;
         if (safe) {
             return {config_.target_linear_speed, 0.0};
@@ -42,15 +40,14 @@ public:
         return {0.0, dir * config_.max_angular_speed};
     }
 
-    void update_config(const model::Config &config) { config_ = config; }
+    void update_config(const model::Config& config) { config_ = config; }
 
-    [[nodiscard]] const model::Config &config() const { return config_; }
+    [[nodiscard]] const model::Config& config() const { return config_; }
 
 private:
-    static const model::Threat *find_nearest(
-        const std::vector<model::Threat> &threats) {
-        const model::Threat *best = nullptr;
-        for (const auto &t : threats) {
+    static const model::Threat* find_nearest(const std::vector<model::Threat>& threats) {
+        const model::Threat* best = nullptr;
+        for (const auto& t : threats) {
             if (!best || t.distance < best->distance) {
                 best = &t;
             }

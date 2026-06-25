@@ -24,7 +24,7 @@ public:
     double calculate(double setpoint, double measurement, double dt);
 
     /// 更新增益（热更新）
-    void set_gains(const Gains &gains) { gains_ = gains; }
+    void set_gains(const Gains& gains) { gains_ = gains; }
 
     /// 清零内部状态（积分项、微分项）
     void reset();

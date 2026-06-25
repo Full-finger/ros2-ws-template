@@ -8,6 +8,7 @@
 判定标准：删掉 controller，service 能否脱离 ROS2 用 pytest 裸测？
 能 → 合格。
 """
+
 from .model import Config, LaserPoint, ObstacleProto, PerceptionError
 from .service import ObstacleExtractorService
 
