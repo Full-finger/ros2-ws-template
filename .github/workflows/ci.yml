@@ -122,14 +122,20 @@ jobs:
       - name: Install linters
         run: |
           apt-get update
-          pip3 install yamllint
+          # 版本与 .pre-commit-config.yaml 严格对齐（black/clang-format），
+          # 避免格式化结果漂移导致 CI 与本地不一致
+          pip3 install yamllint black==24.8.0 flake8==7.1.1 clang-format==18.1.8
 
       - name: YAML lint
         run: yamllint -d relaxed src/
 
+      - name: Python lint (black + flake8)
+        run: |
+          black --check src/ scripts/
+          flake8 --max-line-length=100 src/ scripts/
+
       - name: C++ format check (clang-format)
         run: |
-          apt-get install -y clang-format
           find src -type f \( -name '*.hpp' -o -name '*.cpp' \) -print0 \
             | xargs -0 clang-format --dry-run -Werror --style=file
 
