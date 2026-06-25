@@ -15,6 +15,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include "robot_common/math_utils.hpp"
 #include "robot_hardware/model/types.hpp"
 #include "robot_hardware/service/differential_drive.hpp"
 
@@ -89,11 +90,13 @@ private:
         odom_pub_->publish(odom_msg);
     }
 
-    /// yaw (rad) → quaternion（仅绕 z 轴）
+    /// yaw (rad) → quaternion（仅绕 z 轴）。几何运算下沉到 robot_common::math，
+    /// controller 只做 model↔ROS 的字段组装。
     static geometry_msgs::msg::Quaternion yaw_to_quaternion(double yaw) {
+        const auto [z, w] = robot_common::math::yaw_to_quat(yaw);
         geometry_msgs::msg::Quaternion q;
-        q.z = std::sin(yaw * 0.5);
-        q.w = std::cos(yaw * 0.5);
+        q.z = z;
+        q.w = w;
         return q;
     }
 

@@ -47,14 +47,12 @@ private:
         if (dt <= 0.0)
             return;  // 首帧或时钟异常，跳过
 
-        // robot_msgs/ObstacleArray → model::Threat
+        // robot_msgs/ObstacleArray → model::Threat（坐标变换由 service 负责，
+        // controller 只做字段搬运，不出现几何运算）
         std::vector<model::Threat> threats;
         threats.reserve(msg->obstacles.size());
         for (const auto& ob : msg->obstacles) {
-            model::Threat th;
-            th.distance = std::hypot(ob.center.x, ob.center.y);
-            th.bearing = std::atan2(ob.center.y, ob.center.x);
-            threats.push_back(th);
+            threats.push_back(service::SafetyVelocityService::to_threat(ob.center.x, ob.center.y));
         }
 
         model::TwistCmd cmd = safety_service_->compute(threats, dt);

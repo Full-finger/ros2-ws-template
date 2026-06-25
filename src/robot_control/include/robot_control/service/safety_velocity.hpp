@@ -10,6 +10,7 @@
 // ═══════════════════════════════════════════════════════════
 #pragma once
 
+#include <cmath>
 #include <vector>
 
 #include "robot_control/model/errors.hpp"
@@ -20,6 +21,15 @@ namespace robot_control::service {
 class SafetyVelocityService {
 public:
     explicit SafetyVelocityService(const model::Config& config) : config_(config) {}
+
+    /// 障碍物笛卡尔坐标 → 威胁极坐标（distance/bearing）。
+    /// 坐标变换是 service 的业务逻辑，controller 不应直接做几何运算。
+    static model::Threat to_threat(double x, double y) {
+        return model::Threat{
+            .distance = std::hypot(x, y),
+            .bearing = std::atan2(y, x),
+        };
+    }
 
     /// 计算安全速度指令
     /// @param threats 当前威胁列表（来自感知层）
