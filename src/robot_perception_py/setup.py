@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from setuptools import find_packages, setup
 
 PACKAGE_NAME = "robot_perception_py"
@@ -9,13 +7,10 @@ setup(
     version="0.1.0",
     packages=find_packages(exclude=["test"]),
     data_files=[
-        ("share/ament_index/resource_index/packages",
-         ["resource/" + PACKAGE_NAME]),
+        ("share/ament_index/resource_index/packages", ["resource/" + PACKAGE_NAME]),
         ("share/" + PACKAGE_NAME, ["package.xml"]),
-        ("share/" + PACKAGE_NAME + "/launch",
-         ["launch/robot_perception_py.launch.py"]),
-        ("share/" + PACKAGE_NAME + "/config",
-         ["config/params.yaml"]),
+        ("share/" + PACKAGE_NAME + "/launch", ["launch/robot_perception_py.launch.py"]),
+        ("share/" + PACKAGE_NAME + "/config", ["config/params.yaml"]),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

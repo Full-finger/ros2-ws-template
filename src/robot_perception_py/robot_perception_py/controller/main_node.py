@@ -9,8 +9,6 @@
 """robot_perception_py 的 ROS2 节点入口。"""
 from __future__ import annotations
 
-import math
-
 from rclpy import init, spin, shutdown
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -19,18 +17,6 @@ from robot_msgs.msg import Obstacle, ObstacleArray
 
 from robot_perception_py.model import Config
 from robot_perception_py.service import ObstacleExtractorService
-
-import rclpy  # noqa: E402 (主入口放一起便于阅读)
-
-
-def main(args=None) -> None:
-    init(args=args)
-    try:
-        spin(MainNode())
-    except KeyboardInterrupt:
-        pass
-    finally:
-        shutdown()
 
 
 class MainNode(Node):
@@ -46,13 +32,15 @@ class MainNode(Node):
         self._svc = ObstacleExtractorService(self._load_config())
 
         self._scan_sub = self.create_subscription(
-            LaserScan, "~/input/scan", self._on_scan, 10)
+            LaserScan, "~/input/scan", self._on_scan, 10
+        )
         self._obstacles_pub = self.create_publisher(
-            ObstacleArray, "~/output/obstacles", 10)
+            ObstacleArray, "~/output/obstacles", 10
+        )
 
         self.get_logger().info(
-            f"感知节点(Python)已启动 (min_points="
-            f"{self._svc.config.min_points})")
+            f"感知节点(Python)已启动 (min_points={self._svc.config.min_points})"
+        )
 
     def _on_scan(self, msg: LaserScan) -> None:
         from robot_perception_py.model import LaserPoint
@@ -85,8 +73,19 @@ class MainNode(Node):
         self.get_logger().debug(f"提取出 {len(protos)} 个障碍物")
 
     def _load_config(self) -> Config:
+        # 用 as_double()/as_int() 而非 .value：类型由声明保证，编译期/运行期都更稳
         return Config(
-            max_range=self.get_parameter("max_range").value,
-            min_range=self.get_parameter("min_range").value,
-            min_points=self.get_parameter("min_points").value,
+            max_range=self.get_parameter("max_range").as_double(),
+            min_range=self.get_parameter("min_range").as_double(),
+            min_points=self.get_parameter("min_points").as_int(),
         )
+
+
+def main(args=None) -> None:
+    init(args=args)
+    try:
+        spin(MainNode())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        shutdown()
