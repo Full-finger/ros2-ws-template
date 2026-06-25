@@ -1,6 +1,7 @@
 // ═══ 差速驱动运动学测试（纯逻辑，不依赖 ROS2） ═══
-#include <gtest/gtest.h>
 #include <limits>
+
+#include <gtest/gtest.h>
 
 #include "robot_hardware/model/types.hpp"
 #include "robot_hardware/service/differential_drive.hpp"
@@ -88,4 +89,32 @@ TEST_F(DifferentialDriveTest, Reset) {
     OdometryData odom = svc_->odom();
     EXPECT_DOUBLE_EQ(odom.x, 0.0);
     EXPECT_DOUBLE_EQ(odom.y, 0.0);
+}
+
+// ═══ 配置合法性校验（防止 wheel_base=0 导致除零污染里程计） ═══
+TEST(DifferentialDriveConfigTest, ZeroWheelBaseThrows) {
+    Config config;
+    config.wheel_radius = 1.0;
+    config.wheel_base = 0.0;  // 非法：会导致除零
+    EXPECT_THROW(DifferentialDriveService svc(config), robot_hardware::model::ConfigError);
+}
+
+TEST(DifferentialDriveConfigTest, NegativeWheelRadiusThrows) {
+    Config config;
+    config.wheel_radius = -0.1;  // 非法
+    config.wheel_base = 0.3;
+    EXPECT_THROW(DifferentialDriveService svc(config), robot_hardware::model::ConfigError);
+}
+
+TEST(DifferentialDriveConfigTest, UpdateConfigRejectsInvalidAndKeepsOld) {
+    Config valid;
+    valid.wheel_radius = 1.0;
+    valid.wheel_base = 0.3;
+    DifferentialDriveService svc(valid);
+
+    Config bad = valid;
+    bad.wheel_base = 0.0;
+    EXPECT_THROW(svc.update_config(bad), robot_hardware::model::ConfigError);
+    // 校验失败后原配置应保持不变（不会被部分赋值污染）
+    EXPECT_DOUBLE_EQ(svc.config().wheel_base, 0.3);
 }

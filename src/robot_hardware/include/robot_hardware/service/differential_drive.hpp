@@ -17,20 +17,20 @@
 #include <cmath>
 
 #include "robot_common/math_utils.hpp"
-#include "robot_hardware/model/types.hpp"
 #include "robot_hardware/model/errors.hpp"
+#include "robot_hardware/model/types.hpp"
 
 namespace robot_hardware::service {
 
 class DifferentialDriveService {
 public:
-    explicit DifferentialDriveService(const model::Config &config)
-        : config_(config) {}
+    explicit DifferentialDriveService(const model::Config& config) : config_(config) {
+        validate_config(config_);
+    }
 
     /// 单步里程计更新
     /// @throws model::SensorReadError 若轮速读数非法（NaN 等）
-    model::OdometryData update_odometry(const model::MotorReading &reading,
-                                        double dt) {
+    model::OdometryData update_odometry(const model::MotorReading& reading, double dt) {
         validate(reading);
         if (dt <= 0.0) {
             throw model::SensorReadError("dt 必须为正");
@@ -39,8 +39,7 @@ public:
         const double v_left = reading.left_wheel_speed * config_.wheel_radius;
         const double v_right = reading.right_wheel_speed * config_.wheel_radius;
         const double v = (v_left + v_right) / 2.0;
-        const double w =
-            (v_right - v_left) / config_.wheel_base;
+        const double w = (v_right - v_left) / config_.wheel_base;
 
         odom_.theta = robot_common::math::wrap_angle(odom_.theta + w * dt);
         odom_.x += v * std::cos(odom_.theta) * dt;
@@ -52,17 +51,29 @@ public:
         return odom_;
     }
 
-    void update_config(const model::Config &config) { config_ = config; }
-
-    void reset() {
-        odom_ = {};
+    void update_config(const model::Config& config) {
+        validate_config(config);
+        config_ = config;
     }
 
-    [[nodiscard]] const model::OdometryData &odom() const { return odom_; }
-    [[nodiscard]] const model::Config &config() const { return config_; }
+    void reset() { odom_ = {}; }
+
+    [[nodiscard]] const model::OdometryData& odom() const { return odom_; }
+    [[nodiscard]] const model::Config& config() const { return config_; }
 
 private:
-    static void validate(const model::MotorReading &reading) {
+    // 用 !(x > 0.0) 而非 x <= 0.0：这样 NaN 也会被拦下
+    // （NaN > 0 为假 → !假 = 真 → 抛错），避免 NaN 配置静默通过。
+    static void validate_config(const model::Config& c) {
+        if (!(c.wheel_base > 0.0)) {
+            throw model::ConfigError("wheel_base 必须为正");
+        }
+        if (!(c.wheel_radius > 0.0)) {
+            throw model::ConfigError("wheel_radius 必须为正");
+        }
+    }
+
+    static void validate(const model::MotorReading& reading) {
         if (!std::isfinite(reading.left_wheel_speed) || !std::isfinite(reading.right_wheel_speed)) {
             throw model::SensorReadError("电机读数含 NaN 或 Inf");
         }
